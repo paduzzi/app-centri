@@ -59,13 +59,16 @@ td input[type=text]:focus{background:#E1F5EE;border-radius:3px;}
 .action-bar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
 .btn{padding:9px 14px;border-radius:8px;border:0.5px solid #ccc;background:#fff;color:#1a1a1a;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .btn.green{background:#1D9E75;color:#fff;border-color:#1D9E75;}
-.btn.whatsapp{background:#25D366;color:#fff;border-color:#25D366;}
 .btn.red{background:#E24B4A;color:#fff;border-color:#E24B4A;}
 .btn.small{padding:6px 10px;font-size:12px;}
 .card{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:12px 14px;margin-bottom:10px;}
 .card.urgent{border-left:3px solid #EF9F27;border-radius:0 12px 12px 0;}
+.card.richiesta{border-left:3px solid #4A90D9;border-radius:0 12px 12px 0;}
 .card .meta{font-size:11px;color:#888;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;}
 .card .testo{font-size:13px;color:#1a1a1a;line-height:1.6;}
+.inner-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.inner-tab{padding:6px 14px;border-radius:8px;border:0.5px solid #e0e0d8;background:#f5f5f0;color:#888;cursor:pointer;font-size:13px;}
+.inner-tab.active{background:#1D9E75;color:#fff;border-color:#1D9E75;}
 .cassa-totals{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
 .cassa-total{background:#fff;border:0.5px solid #e0e0d8;border-radius:8px;padding:10px 12px;}
 .cassa-total .lbl{font-size:11px;color:#888;margin-bottom:2px;}
@@ -84,6 +87,7 @@ td input[type=text]:focus{background:#E1F5EE;border-radius:3px;}
 .info-box{background:#f5f5f0;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#888;line-height:1.6;}
 .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;}
 .badge-urgent{background:#FAEEDA;color:#854F0B;}
+.badge-richiesta{background:#E0EEFA;color:#1A5FA8;}
 .badge-admin{background:#E8E0F5;color:#5B2D8E;}
 .admin-user-card{background:#fff;border:0.5px solid #e0e0d8;border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
 .turni-card{background:#fff;border:0.5px solid #e0e0d8;border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
@@ -100,20 +104,16 @@ td input[type=text]:focus{background:#E1F5EE;border-radius:3px;}
     <input type="text" id="login-username" placeholder="Username" autocomplete="username" autocapitalize="none" autocorrect="off"/>
     <div class="pwd-wrap">
       <input type="password" id="login-password" placeholder="Password" autocomplete="current-password"/>
-      <button class="pwd-toggle" onclick="togglePwdVisibility('login-password',this)" type="button">
-        <i class="ti ti-eye"></i>
-      </button>
+      <button class="pwd-toggle" onclick="togglePwdVisibility('login-password',this)" type="button"><i class="ti ti-eye"></i></button>
     </div>
     <button class="main-btn" onclick="doLogin()">Accedi</button>
     <div id="login-error">Username o password errati</div>
     <div id="db-status">Connessione...</div>
   </div>
-
-  <!-- SETUP PRIMO ACCESSO -->
   <div id="setup-box">
     <div class="setup-title"><i class="ti ti-shield" style="margin-right:4px;"></i>Primo accesso — Crea account Admin</div>
-    <div style="font-size:12px;color:#888;margin-bottom:10px;">Questo box appare solo la prima volta. Crea il tuo account admin.</div>
-    <div style="margin-bottom:8px;"><input type="text" id="setup-uname" placeholder="Username admin (es: admin)" autocapitalize="none" style="width:100%;padding:9px 11px;border:0.5px solid #ccc;border-radius:8px;font-size:14px;"></div>
+    <div style="font-size:12px;color:#888;margin-bottom:10px;">Questo box appare solo la prima volta.</div>
+    <div style="margin-bottom:8px;"><input type="text" id="setup-uname" placeholder="Username admin" autocapitalize="none" style="width:100%;padding:9px 11px;border:0.5px solid #ccc;border-radius:8px;font-size:14px;"></div>
     <div style="position:relative;margin-bottom:8px;">
       <input type="password" id="setup-pwd" placeholder="Password admin" style="width:100%;padding:9px 40px 9px 11px;border:0.5px solid #ccc;border-radius:8px;font-size:14px;">
       <button class="pwd-toggle" onclick="togglePwdVisibility('setup-pwd',this)" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);"><i class="ti ti-eye"></i></button>
@@ -175,18 +175,16 @@ const firebaseConfig={
   appId:"1:627544943347:web:1dd804c943f1d65dc1a586"
 };
 
-let db,auth,dbData={},currentArea='villa',currentSection='presenze-ragazzi',currentWeek=0,currentUser=null,isAdmin=false,adminUsername='';
+let db,auth,dbData={},currentArea='villa',currentSection='presenze-ragazzi',currentWeek=0,currentUser=null,isAdmin=false,comInnerTab='comunicazioni';
 
 firebase.initializeApp(firebaseConfig);
 db=firebase.database();
 auth=firebase.auth();
 
-// Controlla se esiste già un admin nel database
 db.ref('centri_estivi').on('value',snap=>{
   dbData=snap.val()||{};
   document.getElementById('db-status').textContent='Database connesso ✓';
   document.getElementById('db-status').style.color='#1D9E75';
-  // Mostra setup box se non ci sono utenti
   const users=dbData.users||{};
   const hasAdmin=Object.values(users).some(u=>u.isAdmin);
   document.getElementById('setup-box').style.display=hasAdmin?'none':'block';
@@ -194,28 +192,17 @@ db.ref('centri_estivi').on('value',snap=>{
   setSyncStatus('ok');
 });
 
-// ── PASSWORD TOGGLE ───────────────────────────────────────
 function togglePwdVisibility(inputId,btn){
-  const input=document.getElementById(inputId);
-  const icon=btn.querySelector('i');
-  if(input.type==='password'){
-    input.type='text';
-    icon.className='ti ti-eye-off';
-  }else{
-    input.type='password';
-    icon.className='ti ti-eye';
-  }
+  const input=document.getElementById(inputId);const icon=btn.querySelector('i');
+  if(input.type==='password'){input.type='text';icon.className='ti ti-eye-off';}
+  else{input.type='password';icon.className='ti ti-eye';}
 }
-
-// Toggle per i campi password nel pannello admin (generato dinamicamente)
 function toggleDynPwd(inputId,btn){
-  const input=document.getElementById(inputId);
-  const icon=btn.querySelector('i');
+  const input=document.getElementById(inputId);const icon=btn.querySelector('i');
   if(input.type==='password'){input.type='text';icon.className='ti ti-eye-off';}
   else{input.type='password';icon.className='ti ti-eye';}
 }
 
-// ── SETUP PRIMO ACCESSO ───────────────────────────────────
 async function createAdminAccount(){
   const uname=document.getElementById('setup-uname').value.trim().toLowerCase().replace(/\s/g,'_');
   const pwd=document.getElementById('setup-pwd').value.trim();
@@ -225,15 +212,12 @@ async function createAdminAccount(){
   try{
     const cred=await auth.createUserWithEmailAndPassword(uname+FAKE_DOMAIN,pwd);
     await db.ref('centri_estivi/users/'+cred.user.uid).set({username:uname,email:uname+FAKE_DOMAIN,isAdmin:true,created:new Date().toLocaleDateString('it-IT')});
-    showMsg(msg,'✓ Account admin creato! Ora accedi con le tue credenziali.','#1D9E75');
+    showMsg(msg,'✓ Account admin creato! Ora accedi.','#1D9E75');
     document.getElementById('setup-box').style.display='none';
     document.getElementById('login-username').value=uname;
-  }catch(e){
-    showMsg(msg,e.code==='auth/email-already-in-use'?'Username già esistente':e.message,'#E24B4A');
-  }
+  }catch(e){showMsg(msg,e.code==='auth/email-already-in-use'?'Username già esistente':e.message,'#E24B4A');}
 }
 
-// ── LOGIN ─────────────────────────────────────────────────
 async function doLogin(){
   const uname=document.getElementById('login-username').value.trim().toLowerCase();
   const pwd=document.getElementById('login-password').value;
@@ -243,17 +227,13 @@ async function doLogin(){
     const cred=await auth.signInWithEmailAndPassword(uname+FAKE_DOMAIN,pwd);
     const uid=cred.user.uid;
     const userData=dbData.users&&dbData.users[uid];
-    currentUser=uname;
-    isAdmin=userData&&userData.isAdmin===true;
-    adminUsername=isAdmin?uname:'';
+    currentUser=uname;isAdmin=userData&&userData.isAdmin===true;
     document.getElementById('login-screen').style.display='none';
     document.getElementById('main-app').style.display='block';
     document.getElementById('user-badge').textContent=uname+(isAdmin?' ★':'');
     document.getElementById('admin-tab').style.display=isAdmin?'flex':'none';
     switchArea('villa');
-  }catch(e){
-    err.textContent='Username o password errati';err.style.display='block';
-  }
+  }catch(e){document.getElementById('login-error').textContent='Username o password errati';document.getElementById('login-error').style.display='block';}
 }
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('login-screen').style.display!=='none')doLogin();});
 
@@ -267,7 +247,6 @@ function doLogout(){
   document.querySelectorAll('.pwd-toggle i').forEach(i=>i.className='ti ti-eye');
 }
 
-// ── FIREBASE ──────────────────────────────────────────────
 function setSyncStatus(s){const d=document.getElementById('sync-dot');if(!d)return;d.className='sync-dot'+(s==='saving'?' saving':'');}
 function fbGet(path){const parts=path.split('/');let cur=dbData;for(const p of parts){if(cur==null)return null;cur=cur[p];}return cur??null;}
 function fbSet(path,value){setSyncStatus('saving');db.ref('centri_estivi/'+path).set(value).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('ok'));}
@@ -277,14 +256,13 @@ function aLbl(){return{villa:'Villa Ester',marano:'Marano',appartamento:'Apparta
 function weekTabsHtml(){return '<div class="week-tabs">'+WEEKS.map((w,i)=>`<div class="week-tab${i===currentWeek?' active':''}" onclick="selWeek(${i})">${w.label}</div>`).join('')+'</div>';}
 function selWeek(i){currentWeek=i;renderSection();}
 
-// ── NAVIGAZIONE ───────────────────────────────────────────
 function switchArea(a){
   currentArea=a;currentWeek=0;
   document.querySelectorAll('.area-tab').forEach((t,i)=>t.classList.toggle('active',['villa','marano','appartamento','admin'][i]===a));
   if(a==='admin'){renderAdmin();document.getElementById('section-tabs').innerHTML='';return;}
-  const secs=['presenze-ragazzi','presenze-educatori','turni','cassa','diario','comunicazioni','richieste','foto'];
-  const icons=['users','id-badge','calendar','cash','notebook','speakerphone','mail','camera'];
-  const labels=['Presenze ragazzi','Presenze educ.','Turni','Cassa','Diario','Comunicaz.','Richieste','Foto'];
+  const secs=['presenze-ragazzi','presenze-educatori','turni','cassa','diario','com-richieste'];
+  const icons=['users','id-badge','calendar','cash','notebook','speakerphone'];
+  const labels=['Presenze ragazzi','Presenze educ.','Turni','Cassa','Diario','Comunicaz./Rich.'];
   document.getElementById('section-tabs').innerHTML=secs.map((s,i)=>`<div class="section-tab${s===currentSection?' active':''}" onclick="switchSection('${s}')"><i class="ti ti-${icons[i]}"></i> ${labels[i]}</div>`).join('');
   renderSection();
 }
@@ -296,7 +274,7 @@ function switchSection(s){
 function renderSection(){
   if(currentArea==='admin'){renderAdmin();return;}
   const c=document.getElementById('section-content');if(!c)return;
-  ({'presenze-ragazzi':()=>renderPresenze(c,'ragazzi',20),'presenze-educatori':()=>renderPresenze(c,'educatori',15),'turni':()=>renderTurni(c),'cassa':()=>renderCassa(c),'diario':()=>renderDiario(c),'comunicazioni':()=>renderComunicazioni(c),'richieste':()=>renderRichieste(c),'foto':()=>renderFoto(c)}[currentSection]||(() => {}))();
+  ({'presenze-ragazzi':()=>renderPresenze(c,'ragazzi',20),'presenze-educatori':()=>renderPresenze(c,'educatori',15),'turni':()=>renderTurni(c),'cassa':()=>renderCassa(c),'diario':()=>renderDiario(c),'com-richieste':()=>renderComRichieste(c)}[currentSection]||(() => {}))();
 }
 
 // ── PRESENZE ─────────────────────────────────────────────
@@ -329,11 +307,76 @@ function togglePA(btn){
   btn.className='pa-btn '+(next==='P'?'present':next==='A'?'absent':'');
   fbSet(btn.dataset.path,next);
 }
+
+// ── EXPORT PDF con intestazione ───────────────────────────
+function drawHeaderRagazzi(doc){
+  // Intestazione presenze ragazzi: ASP Parma + Comune di Parma
+  const pw=297;
+  // Rettangolo sfondo header
+  doc.setFillColor(245,245,240);doc.rect(0,0,pw,28,'F');
+  // ASP Parma - sinistra
+  doc.setFillColor(29,158,117);doc.rect(10,4,28,18,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(11);
+  doc.text('ASP',24,11,{align:'center'});
+  doc.setFontSize(7);doc.text('Parma',24,16,{align:'center'});
+  doc.setFontSize(6);doc.text('Azienda di Servizi',24,20,{align:'center'});
+  doc.text('alla Persona',24,23,{align:'center'});
+  // Testo centrale
+  doc.setTextColor(30,30,30);doc.setFont('helvetica','bold');doc.setFontSize(10);
+  doc.text('CENTRI ESTIVI ASP PARMA 2025',pw/2,10,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(8);
+  doc.text('Registro presenze ragazzi',pw/2,16,{align:'center'});
+  // Comune di Parma - destra
+  doc.setFillColor(180,20,20);doc.rect(pw-38,4,28,18,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);
+  doc.text('COMUNE',pw-24,10,{align:'center'});doc.text('DI PARMA',pw-24,14,{align:'center'});
+  doc.setFontSize(5);doc.text('Struttura Operativa',pw-24,18,{align:'center'});
+  doc.text('Genitorialità',pw-24,21,{align:'center'});
+  // Linea separatrice
+  doc.setDrawColor(29,158,117);doc.setLineWidth(0.5);doc.line(10,29,pw-10,29);
+  doc.setTextColor(30,30,30);
+}
+
+function drawHeaderEducatori(doc){
+  const pw=297;
+  doc.setFillColor(245,245,240);doc.rect(0,0,pw,28,'F');
+  // ALDIA - sinistra
+  doc.setFillColor(50,50,120);doc.rect(10,4,22,18,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(10);
+  doc.text('ALDIA',21,14,{align:'center'});
+  doc.setFontSize(5);doc.text('Persone per le persone',21,20,{align:'center'});
+  // PROGES - accanto
+  doc.setFillColor(0,120,80);doc.rect(34,4,22,18,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text('PROGES',45,12,{align:'center'});
+  doc.setFontSize(5);doc.text('Your Family',45,17,{align:'center'});doc.text('Company',45,21,{align:'center'});
+  // Testo centrale
+  doc.setTextColor(30,30,30);doc.setFont('helvetica','bold');doc.setFontSize(10);
+  doc.text('CENTRI ESTIVI ASP PARMA 2025',pw/2,10,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(8);
+  doc.text('Registro presenze educatori',pw/2,16,{align:'center'});
+  // ASP Parma - destra
+  doc.setFillColor(29,158,117);doc.rect(pw-38,4,28,18,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(11);
+  doc.text('ASP',pw-24,11,{align:'center'});
+  doc.setFontSize(7);doc.text('Parma',pw-24,16,{align:'center'});
+  doc.setFontSize(6);doc.text('Azienda di Servizi',pw-24,20,{align:'center'});doc.text('alla Persona',pw-24,23,{align:'center'});
+  // Linea
+  doc.setDrawColor(29,158,117);doc.setLineWidth(0.5);doc.line(10,29,pw-10,29);
+  doc.setTextColor(30,30,30);
+}
+
 function exportPDF(tipo,weekIdx,nRighe){
-  const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   const isR=tipo==='ragazzi';const w=WEEKS[weekIdx];const bp=`presenze_${tipo}/${currentArea}/w${weekIdx}`;
-  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`${isR?'Presenze ragazzi':'Presenze educatori'} — ${aLbl()}`,14,15);
-  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`Settimana: ${w.label}`,14,22);
+  // Intestazione
+  if(isR) drawHeaderRagazzi(doc);
+  else drawHeaderEducatori(doc);
+  // Info
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(30,30,30);
+  doc.text(`${aLbl()} — Settimana: ${w.label}`,14,36);
+  // Tabella
   const head=[[isR?'Iniziali':'Educatore',...w.dates,'Note']];const body=[];
   for(let r=0;r<nRighe;r++){
     let row=[fbGet(`${bp}/names/r${r}`)||''];
@@ -341,7 +384,11 @@ function exportPDF(tipo,weekIdx,nRighe){
     row.push(isR?(r===0?fbGet(`${bp}/weeknote`)||'':''):fbGet(`${bp}/rownotes/r${r}`)||'');
     body.push(row);
   }
-  doc.autoTable({head,body,startY:26,styles:{fontSize:9,cellPadding:2},headStyles:{fillColor:[29,158,117],textColor:255},columnStyles:{0:{cellWidth:28}}});
+  doc.autoTable({head,body,startY:40,styles:{fontSize:9,cellPadding:2},headStyles:{fillColor:[29,158,117],textColor:255,fontStyle:'bold'},columnStyles:{0:{cellWidth:28}},alternateRowStyles:{fillColor:[248,248,245]}});
+  // Footer
+  const pageH=doc.internal.pageSize.getHeight();
+  doc.setFontSize(7);doc.setTextColor(150,150,150);
+  doc.text(`Generato il ${new Date().toLocaleDateString('it-IT')} — Centri Estivi ASP Parma 2025`,14,pageH-5);
   doc.save(`presenze_${tipo}_${currentArea}_${w.label.replace(/[\/\s\u2013]/g,'-')}.pdf`);
 }
 
@@ -380,9 +427,17 @@ function addSpesa(bp){const desc=document.getElementById('spesa-desc').value.tri
 function exportCassaPDF(bp,weekIdx){
   const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});
   const dato=parseFloat(fbGet(`${bp}/dato`)||0);const spese=Object.values(fbGet(`${bp}/spese`)||{});const tot=spese.reduce((s,e)=>s+parseFloat(e.importo||0),0);const w=WEEKS[weekIdx];
-  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`Foglio cassa — ${aLbl()}`,14,15);
-  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`Settimana: ${w.label}`,14,22);doc.text(`Dato: € ${dato.toFixed(2)}   |   Speso: € ${tot.toFixed(2)}   |   Resto: € ${(dato-tot).toFixed(2)}`,14,29);
-  doc.autoTable({head:[['Descrizione','Chi ha pagato','Importo (€)','Data']],body:spese.map(s=>[s.desc,s.chi||'',parseFloat(s.importo).toFixed(2),s.data||'']),startY:34,styles:{fontSize:10,cellPadding:3},headStyles:{fillColor:[29,158,117],textColor:255}});
+  doc.setFillColor(29,158,117);doc.rect(0,0,210,20,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
+  doc.text('CENTRI ESTIVI ASP PARMA 2025',105,9,{align:'center'});
+  doc.setFontSize(9);doc.text('Foglio cassa',105,15,{align:'center'});
+  doc.setTextColor(30,30,30);doc.setFont('helvetica','bold');doc.setFontSize(12);
+  doc.text(`${aLbl()} — Settimana: ${w.label}`,14,28);
+  doc.setFont('helvetica','normal');doc.setFontSize(10);
+  doc.text(`Dato: € ${dato.toFixed(2)}   |   Speso: € ${tot.toFixed(2)}   |   Resto: € ${(dato-tot).toFixed(2)}`,14,35);
+  doc.autoTable({head:[['Descrizione','Chi ha pagato','Importo (€)','Data']],body:spese.map(s=>[s.desc,s.chi||'',parseFloat(s.importo).toFixed(2),s.data||'']),startY:40,styles:{fontSize:10,cellPadding:3},headStyles:{fillColor:[29,158,117],textColor:255},alternateRowStyles:{fillColor:[248,248,245]}});
+  const ph=doc.internal.pageSize.getHeight();
+  doc.setFontSize(7);doc.setTextColor(150,150,150);doc.text(`Generato il ${new Date().toLocaleDateString('it-IT')}`,14,ph-5);
   doc.save(`cassa_${currentArea}_${w.label.replace(/[\/\s\u2013]/g,'-')}.pdf`);
 }
 
@@ -405,41 +460,54 @@ function addDiario(){
   document.getElementById('d-testo').value='';document.getElementById('d-autore').value='';
 }
 
-// ── COMUNICAZIONI ─────────────────────────────────────────
-function renderComunicazioni(c){
-  const coms=fbGet(`comunicazioni/${currentArea}`)||{};const list=Object.entries(coms).sort((a,b)=>b[0].localeCompare(a[0]));
-  const waMsg=encodeURIComponent(`[Comunicazione ${aLbl()}] `);
-  let h=`<div class="section-title"><i class="ti ti-speakerphone"></i> Comunicazioni — ${aLbl()}</div>`;
-  h+=`<div class="info-box"><i class="ti ti-info-circle"></i> Bacheca della coordinatrice.</div>`;
-  h+=`<div class="form-group"><label>Nuova comunicazione</label><textarea id="com-testo" placeholder="Testo..."></textarea></div>`;
-  h+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><input type="checkbox" id="com-imp" style="width:18px;height:18px;"> <label for="com-imp" style="font-size:13px;color:#888;">Segna come urgente</label></div>`;
-  h+=`<div class="action-bar"><button class="btn green" onclick="addCom()"><i class="ti ti-send"></i> Pubblica</button><a href="https://wa.me/${WA_NUMBER}?text=${waMsg}" target="_blank" class="btn whatsapp"><i class="ti ti-brand-whatsapp"></i> Invia su WhatsApp</a></div>`;
-  if(list.length>0){h+=`<div style="margin-top:16px;">`;list.forEach(([key,e])=>{h+=`<div class="card ${e.importante?'urgent':''}"><div class="meta"><span>${e.data}${e.importante?' <span class="badge badge-urgent">Urgente</span>':''}</span>`;if(isAdmin) h+=`<button onclick="fbRemove('comunicazioni/${currentArea}/${key}')" style="border:none;background:none;cursor:pointer;color:#ccc;font-size:13px;padding:0;"><i class="ti ti-trash"></i></button>`;h+=`</div><div class="testo">${e.testo.replace(/\n/g,'<br>')}</div></div>`;});h+=`</div>`;}
-  else{h+=`<div class="empty-state" style="margin-top:16px;">Nessuna comunicazione pubblicata</div>`;}
+// ── COMUNICAZIONI / RICHIESTE (sezione unificata) ─────────
+function renderComRichieste(c){
+  let h=`<div class="section-title"><i class="ti ti-speakerphone"></i> Comunicazioni e Richieste — ${aLbl()}</div>`;
+  h+=`<div class="inner-tabs">`;
+  h+=`<div class="inner-tab${comInnerTab==='comunicazioni'?' active':''}" onclick="switchComTab('comunicazioni')"><i class="ti ti-speakerphone"></i> Comunicazioni</div>`;
+  h+=`<div class="inner-tab${comInnerTab==='richieste'?' active':''}" onclick="switchComTab('richieste')"><i class="ti ti-mail"></i> Richieste</div>`;
+  h+=`</div>`;
+  if(comInnerTab==='comunicazioni'){
+    const coms=fbGet(`comunicazioni/${currentArea}`)||{};const list=Object.entries(coms).sort((a,b)=>b[0].localeCompare(a[0]));
+    const waMsg=encodeURIComponent(`[Comunicazione ${aLbl()}] `);
+    h+=`<div class="info-box"><i class="ti ti-info-circle"></i> Bacheca della coordinatrice. Gli educatori leggono qui gli aggiornamenti.</div>`;
+    h+=`<div class="form-group"><label>Nuova comunicazione</label><textarea id="com-testo" placeholder="Testo della comunicazione..."></textarea></div>`;
+    h+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><input type="checkbox" id="com-imp" style="width:18px;height:18px;"> <label for="com-imp" style="font-size:13px;color:#888;">Segna come urgente</label></div>`;
+    h+=`<div class="action-bar"><button class="btn green" onclick="addCom()"><i class="ti ti-send"></i> Pubblica</button><a href="https://wa.me/${WA_NUMBER}?text=${waMsg}" target="_blank" class="btn" style="background:#25D366;color:#fff;border-color:#25D366;"><i class="ti ti-brand-whatsapp"></i> Invia su WhatsApp</a></div>`;
+    if(list.length>0){h+=`<div style="margin-top:16px;">`;list.forEach(([key,e])=>{h+=`<div class="card ${e.importante?'urgent':''}"><div class="meta"><span>${e.data}${e.importante?' <span class="badge badge-urgent">Urgente</span>':''}</span>`;if(isAdmin) h+=`<button onclick="fbRemove('comunicazioni/${currentArea}/${key}')" style="border:none;background:none;cursor:pointer;color:#ccc;font-size:13px;padding:0;"><i class="ti ti-trash"></i></button>`;h+=`</div><div class="testo">${e.testo.replace(/\n/g,'<br>')}</div></div>`;});h+=`</div>`;}
+    else{h+=`<div class="empty-state" style="margin-top:16px;">Nessuna comunicazione pubblicata</div>`;}
+  } else {
+    const richieste=fbGet(`richieste/${currentArea}`)||{};const list=Object.entries(richieste).sort((a,b)=>b[0].localeCompare(a[0]));
+    h+=`<div class="info-box"><i class="ti ti-mail"></i> Scrivi qui le tue richieste. Arriveranno a <strong>p.montermini@asp.parma.it</strong> e verranno salvate qui.</div>`;
+    h+=`<div class="form-group"><label>Tuo nome (iniziali)</label><input type="text" id="rich-autore" placeholder="es. M.R." style="width:110px;"></div>`;
+    h+=`<div class="form-group"><label>Oggetto</label><input type="text" id="rich-oggetto" placeholder="es. Richiesta materiali"></div>`;
+    h+=`<div class="form-group"><label>Messaggio</label><textarea id="rich-testo" placeholder="Descrivi la tua richiesta..."></textarea></div>`;
+    h+=`<div class="action-bar"><button class="btn green" onclick="inviaRichiesta()"><i class="ti ti-send"></i> Invia alla coordinatrice</button></div>`;
+    if(list.length>0){
+      h+=`<div style="margin-top:16px;"><div style="font-size:13px;font-weight:500;margin-bottom:8px;">Richieste inviate</div>`;
+      list.forEach(([key,e])=>{h+=`<div class="card richiesta"><div class="meta"><span>${e.data} — <strong>${e.autore}</strong> <span class="badge badge-richiesta">${e.oggetto||'Richiesta'}</span></span>`;if(isAdmin) h+=`<button onclick="fbRemove('richieste/${currentArea}/${key}')" style="border:none;background:none;cursor:pointer;color:#ccc;font-size:13px;padding:0;"><i class="ti ti-trash"></i></button>`;h+=`</div><div class="testo">${e.testo.replace(/\n/g,'<br>')}</div></div>`;});
+      h+=`</div>`;
+    }
+  }
   c.innerHTML=h;
 }
-function addCom(){const testo=document.getElementById('com-testo').value.trim();const imp=document.getElementById('com-imp').checked;if(!testo)return;fbSet(`comunicazioni/${currentArea}/c${Date.now()}`,{testo,importante:imp,data:new Date().toLocaleDateString('it-IT')});document.getElementById('com-testo').value='';document.getElementById('com-imp').checked=false;}
-
-// ── RICHIESTE ─────────────────────────────────────────────
-function renderRichieste(c){
-  let h=`<div class="section-title"><i class="ti ti-mail"></i> Richieste alla coordinatrice — ${aLbl()}</div>`;
-  h+=`<div class="info-box"><i class="ti ti-mail"></i> Arriverà a <strong>p.montermini@asp.parma.it</strong></div>`;
-  h+=`<div class="form-group"><label>Tuo nome (iniziali)</label><input type="text" id="rich-autore" placeholder="es. M.R." style="width:110px;"></div>`;
-  h+=`<div class="form-group"><label>Oggetto</label><input type="text" id="rich-oggetto" placeholder="es. Richiesta materiali"></div>`;
-  h+=`<div class="form-group"><label>Messaggio</label><textarea id="rich-testo" placeholder="Descrivi la tua richiesta..."></textarea></div>`;
-  h+=`<div class="action-bar"><button class="btn green" onclick="inviaRichiesta()"><i class="ti ti-send"></i> Invia</button></div>`;
-  c.innerHTML=h;
+function switchComTab(tab){comInnerTab=tab;renderSection();}
+function addCom(){
+  const testo=document.getElementById('com-testo').value.trim();const imp=document.getElementById('com-imp').checked;
+  if(!testo)return;
+  fbSet(`comunicazioni/${currentArea}/c${Date.now()}`,{testo,importante:imp,data:new Date().toLocaleDateString('it-IT')});
+  document.getElementById('com-testo').value='';document.getElementById('com-imp').checked=false;
 }
 function inviaRichiesta(){
-  const autore=document.getElementById('rich-autore').value.trim();const oggetto=document.getElementById('rich-oggetto').value.trim();const testo=document.getElementById('rich-testo').value.trim();
+  const autore=document.getElementById('rich-autore').value.trim();
+  const oggetto=document.getElementById('rich-oggetto').value.trim();
+  const testo=document.getElementById('rich-testo').value.trim();
   if(!autore||!testo){alert('Inserisci almeno le iniziali e il messaggio.');return;}
+  // Salva in Firebase
+  fbSet(`richieste/${currentArea}/r${Date.now()}`,{autore,oggetto,testo,data:new Date().toLocaleDateString('it-IT')});
+  // Apre anche email
   window.open(`mailto:p.montermini@asp.parma.it?subject=${encodeURIComponent(`[Centro Estivo - ${aLbl()}] ${oggetto||'Richiesta'}`)}&body=${encodeURIComponent(`Da: ${autore}\nArea: ${aLbl()}\n\n${testo}`)}`);
-}
-
-// ── FOTO ─────────────────────────────────────────────────
-function renderFoto(c){
-  const msgs={villa:encodeURIComponent(`[Villa Ester] 📸 `),marano:encodeURIComponent(`[Marano] 📸 `),appartamento:encodeURIComponent(`[Appartamento] 📸 `)};
-  c.innerHTML=`<div class="section-title"><i class="ti ti-camera"></i> Invia foto — ${aLbl()}</div><div class="info-box"><i class="ti ti-shield-lock"></i> Le foto vanno direttamente via WhatsApp, non vengono salvate nell'app.</div><div style="text-align:center;padding:24px 0;"><a href="https://wa.me/${WA_NUMBER}?text=${msgs[currentArea]}" target="_blank" class="btn whatsapp" style="font-size:15px;padding:13px 24px;display:inline-flex;"><i class="ti ti-brand-whatsapp" style="font-size:20px;"></i> Apri WhatsApp e invia</a><div style="margin-top:12px;font-size:12px;color:#888;">Precompilato per <strong>${aLbl()}</strong></div></div>`;
+  document.getElementById('rich-autore').value='';document.getElementById('rich-oggetto').value='';document.getElementById('rich-testo').value='';
 }
 
 // ── ADMIN ─────────────────────────────────────────────────
@@ -455,12 +523,11 @@ function renderAdmin(){
   h+=`<div class="form-group"><label>Password</label><div class="form-pwd-wrap"><input type="password" id="new-pwd" placeholder="es. Estate2025!"><button class="form-pwd-toggle" onclick="toggleDynPwd('new-pwd',this)" type="button"><i class="ti ti-eye"></i></button></div></div>`;
   h+=`<button class="btn green" onclick="createUser()"><i class="ti ti-user-plus"></i> Crea account</button>`;
   h+=`<div id="create-msg" style="font-size:13px;margin-top:8px;display:none;"></div></div>`;
-  h+=`<div style="font-size:13px;font-weight:500;margin-bottom:10px;">Educatori (${list.length})</div>`;
+  h+=`<div style="font-size:13px;font-weight:500;margin-bottom:10px;">Educatori registrati (${list.length})</div>`;
   if(list.length===0){h+=`<div class="empty-state">Nessun educatore registrato ancora</div>`;}
   else{list.forEach(([uid,u])=>{h+=`<div class="admin-user-card"><div><div style="font-size:14px;font-weight:500;"><i class="ti ti-user" style="margin-right:4px;color:#1D9E75;"></i>${u.username}</div><div style="font-size:11px;color:#888;">Creato il ${u.created||'—'}</div></div><button class="btn small red" onclick="deleteUser('${uid}','${u.username}')"><i class="ti ti-trash"></i> Elimina</button></div>`;});}
   c.innerHTML=h;
 }
-
 async function createUser(){
   const uname=document.getElementById('new-uname').value.trim().toLowerCase().replace(/\s/g,'_');
   const pwd=document.getElementById('new-pwd').value.trim();
@@ -474,16 +541,14 @@ async function createUser(){
     document.getElementById('new-uname').value='';document.getElementById('new-pwd').value='';
   }catch(e){showMsg(msg,e.code==='auth/email-already-in-use'?`Username "${uname}" già esistente`:e.message,'#E24B4A');}
 }
-
 async function deleteUser(uid,uname){
   if(!confirm(`Eliminare l'account "${uname}"?`))return;
   try{
     await db.ref('centri_estivi/users/'+uid).remove();
-    alert(`Account "${uname}" rimosso.\nPer eliminarlo anche da Firebase Authentication vai su Firebase Console → Authentication → Utenti e cerca ${uname+FAKE_DOMAIN}`);
+    alert(`Account "${uname}" rimosso.\nPer eliminarlo da Firebase Auth vai su Firebase Console → Authentication → Utenti e cerca ${uname+FAKE_DOMAIN}`);
     renderAdmin();
   }catch(e){alert('Errore: '+e.message);}
 }
-
 function showMsg(el,txt,color){el.textContent=txt;el.style.color=color;el.style.display='block';}
 </script>
 </body>
