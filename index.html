@@ -491,8 +491,8 @@ function toggleArchivio(tipo){
 
 function renderDiario(c){
   const entries=fbGet(`diario/${currentArea}`)||{};
-  const attivi=Object.entries(entries).filter(([,e])=>!e.archiviato).sort((a,b)=>b[0].localeCompare(a[0]));
-  const archiviati=Object.entries(entries).filter(([,e])=>e.archiviato).sort((a,b)=>b[0].localeCompare(a[0]));
+  const attivi=Object.entries(entries).filter(([,e])=>e.archiviato!==true).sort((a,b)=>b[0].localeCompare(a[0]));
+  const archiviati=Object.entries(entries).filter(([,e])=>e.archiviato===true).sort((a,b)=>b[0].localeCompare(a[0]));
   const mostraArch=showArchivio.diario[currentArea]||false;
 
   let h=`<div class="section-title"><i class="ti ti-notebook"></i> Diario di bordo — ${aLbl()}</div>`;
@@ -546,8 +546,8 @@ function renderComRichieste(c){
 
   if(comInnerTab==='comunicazioni'){
     const coms=fbGet(`comunicazioni/${currentArea}`)||{};
-    const attivi=Object.entries(coms).filter(([,e])=>!e.archiviato).sort((a,b)=>b[0].localeCompare(a[0]));
-    const archiviati=Object.entries(coms).filter(([,e])=>e.archiviato).sort((a,b)=>b[0].localeCompare(a[0]));
+    const attivi=Object.entries(coms).filter(([,e])=>e.archiviato!==true).sort((a,b)=>b[0].localeCompare(a[0]));
+    const archiviati=Object.entries(coms).filter(([,e])=>e.archiviato===true).sort((a,b)=>b[0].localeCompare(a[0]));
     const mostraArch=showArchivio.comunicazioni[currentArea]||false;
     const waMsg=encodeURIComponent(`[Comunicazione ${aLbl()}] `);
 
@@ -587,8 +587,8 @@ function renderComRichieste(c){
 
   } else {
     const richieste=fbGet(`richieste/${currentArea}`)||{};
-    const attivi=Object.entries(richieste).filter(([,e])=>!e.archiviato).sort((a,b)=>b[0].localeCompare(a[0]));
-    const archiviati=Object.entries(richieste).filter(([,e])=>e.archiviato).sort((a,b)=>b[0].localeCompare(a[0]));
+    const attivi=Object.entries(richieste).filter(([,e])=>e.archiviato!==true).sort((a,b)=>b[0].localeCompare(a[0]));
+    const archiviati=Object.entries(richieste).filter(([,e])=>e.archiviato===true).sort((a,b)=>b[0].localeCompare(a[0]));
     const mostraArch=showArchivio.richieste[currentArea]||false;
 
     h+=`<div class="info-box"><i class="ti ti-mail"></i> Le richieste arrivano a <strong>p.montermini@asp.parma.it</strong> e vengono salvate qui.</div>`;
