@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Centri Estivi ASP Parma 2025</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f0;color:#1a1a1a;font-size:15px;-webkit-text-size-adjust:100%;}
+#login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;background:#f5f5f0;}
+.login-card{background:#fff;border-radius:16px;border:0.5px solid #e0e0d8;padding:2rem 1.5rem;display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%;max-width:340px;}
+.login-logo{font-size:18px;font-weight:500;color:#1a1a1a;text-align:center;line-height:1.4;}
+.login-sub{font-size:13px;color:#888;text-align:center;}
+.login-card input{width:100%;padding:11px 14px;border:0.5px solid #ccc;border-radius:8px;font-size:16px;background:#fff;color:#1a1a1a;outline:none;}
+.login-card input:focus{border-color:#1D9E75;}
+.login-card button.main-btn{width:100%;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;font-weight:500;}
+.pwd-wrap{position:relative;width:100%;}
+.pwd-wrap input{padding-right:44px;}
+.pwd-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;font-size:18px;padding:0;display:flex;align-items:center;}
+#login-error{color:#E24B4A;font-size:13px;text-align:center;display:none;}
+#db-status{font-size:12px;color:#888;text-align:center;}
+#setup-box{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:14px;margin-top:8px;width:100%;max-width:340px;display:none;}
+#setup-box .setup-title{font-size:13px;font-weight:500;margin-bottom:8px;color:#5B2D8E;}
+#main-app{display:none;min-height:100vh;}
+.top-bar{background:#fff;border-bottom:0.5px solid #e0e0d8;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.top-bar .title{font-size:14px;font-weight:500;color:#1a1a1a;flex:1;}
+.top-bar .right{display:flex;align-items:center;gap:8px;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0;}
+.sync-dot.saving{background:#EF9F27;}
+.user-badge{font-size:12px;color:#888;background:#f5f5f0;padding:3px 8px;border-radius:20px;}
+.logout-btn{font-size:13px;color:#888;cursor:pointer;border:0.5px solid #e0e0d8;padding:5px 10px;border-radius:8px;background:none;}
+.area-tabs{display:flex;gap:6px;padding:10px 16px;background:#fff;border-bottom:0.5px solid #e0e0d8;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.area-tabs::-webkit-scrollbar{display:none;}
+.area-tab{padding:7px 14px;border-radius:20px;border:0.5px solid #ccc;background:#f5f5f0;color:#888;cursor:pointer;font-size:13px;white-space:nowrap;flex-shrink:0;}
+.area-tab.active{background:#1D9E75;color:#fff;border-color:#1D9E75;}
+.section-tabs{display:flex;gap:6px;padding:8px 16px;background:#f5f5f0;border-bottom:0.5px solid #e0e0d8;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.section-tabs::-webkit-scrollbar{display:none;}
+.section-tab{padding:5px 12px;border-radius:8px;border:0.5px solid #e0e0d8;background:#fff;color:#888;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;}
+.section-tab.active{color:#1D9E75;border-color:#1D9E75;font-weight:500;}
+.content-area{padding:14px 16px;padding-bottom:40px;}
+.week-tabs{display:flex;gap:5px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.week-tabs::-webkit-scrollbar{display:none;}
+.week-tab{padding:5px 10px;border-radius:8px;border:0.5px solid #e0e0d8;background:#fff;color:#888;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0;}
+.week-tab.active{background:#E1F5EE;color:#0F6E56;border-color:#5DCAA5;}
+.table-wrap{overflow-x:auto;border-radius:8px;border:0.5px solid #e0e0d8;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:12px;background:#fff;}
+th{background:#f5f5f0;padding:8px;text-align:left;border:0.5px solid #e0e0d8;font-weight:500;color:#888;white-space:nowrap;}
+td{border:0.5px solid #e0e0d8;padding:1px 3px;}
+td input[type=text]{width:100%;border:none;background:transparent;padding:6px 5px;font-size:12px;color:#1a1a1a;outline:none;min-width:55px;}
+td input[type=text]:focus{background:#E1F5EE;border-radius:3px;}
+.pa-cell{text-align:center;}
+.pa-btn{width:36px;height:30px;border:0.5px solid #e0e0d8;border-radius:4px;background:#f5f5f0;cursor:pointer;font-size:12px;color:#888;touch-action:manipulation;}
+.pa-btn.present{background:#EAF3DE;color:#3B6D11;border-color:#97C459;font-weight:500;}
+.pa-btn.absent{background:#FCEBEB;color:#A32D2D;border-color:#F09595;font-weight:500;}
+.notes-area{margin-top:10px;background:#fff;border:0.5px solid #e0e0d8;border-radius:8px;padding:10px;}
+.notes-area label{font-size:12px;color:#888;display:block;margin-bottom:5px;}
+.notes-area textarea{width:100%;min-height:70px;border:none;background:transparent;font-size:13px;color:#1a1a1a;resize:vertical;outline:none;font-family:inherit;}
+.action-bar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.btn{padding:9px 14px;border-radius:8px;border:0.5px solid #ccc;background:#fff;color:#1a1a1a;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.btn.green{background:#1D9E75;color:#fff;border-color:#1D9E75;}
+.btn.whatsapp{background:#25D366;color:#fff;border-color:#25D366;}
+.btn.red{background:#E24B4A;color:#fff;border-color:#E24B4A;}
+.btn.small{padding:6px 10px;font-size:12px;}
+.card{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.card.urgent{border-left:3px solid #EF9F27;border-radius:0 12px 12px 0;}
+.card .meta{font-size:11px;color:#888;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;}
+.card .testo{font-size:13px;color:#1a1a1a;line-height:1.6;}
+.cassa-totals{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.cassa-total{background:#fff;border:0.5px solid #e0e0d8;border-radius:8px;padding:10px 12px;}
+.cassa-total .lbl{font-size:11px;color:#888;margin-bottom:2px;}
+.cassa-total .val{font-size:17px;font-weight:600;color:#1D9E75;}
+.cassa-total .val.neg{color:#E24B4A;}
+.form-group{margin-bottom:10px;}
+.form-group label{font-size:12px;color:#888;display:block;margin-bottom:4px;}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 11px;border:0.5px solid #ccc;border-radius:8px;font-size:15px;background:#fff;color:#1a1a1a;font-family:inherit;outline:none;-webkit-appearance:none;}
+.form-group input:focus,.form-group textarea:focus{border-color:#1D9E75;}
+.form-group textarea{min-height:90px;resize:vertical;}
+.form-pwd-wrap{position:relative;}
+.form-pwd-wrap input{padding-right:44px;}
+.form-pwd-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;font-size:18px;padding:0;display:flex;align-items:center;}
+.section-title{font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:12px;padding-bottom:8px;border-bottom:0.5px solid #e0e0d8;}
+.empty-state{font-size:13px;color:#888;padding:30px 0;text-align:center;}
+.info-box{background:#f5f5f0;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#888;line-height:1.6;}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;}
+.badge-urgent{background:#FAEEDA;color:#854F0B;}
+.badge-admin{background:#E8E0F5;color:#5B2D8E;}
+.admin-user-card{background:#fff;border:0.5px solid #e0e0d8;border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.turni-card{background:#fff;border:0.5px solid #e0e0d8;border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+@media(max-width:380px){.cassa-totals{grid-template-columns:1fr 1fr;}.cassa-totals .cassa-total:last-child{grid-column:1/-1;}}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <i class="ti ti-sun" style="color:#1D9E75;font-size:40px;"></i>
+    <div class="login-logo">Centri Estivi<br>ASP Parma 2025</div>
+    <div class="login-sub">Accesso riservato agli operatori</div>
+    <input type="text" id="login-username" placeholder="Username" autocomplete="username" autocapitalize="none" autocorrect="off"/>
+    <div class="pwd-wrap">
+      <input type="password" id="login-password" placeholder="Password" autocomplete="current-password"/>
+      <button class="pwd-toggle" onclick="togglePwdVisibility('login-password',this)" type="button">
+        <i class="ti ti-eye"></i>
+      </button>
+    </div>
+    <button class="main-btn" onclick="doLogin()">Accedi</button>
+    <div id="login-error">Username o password errati</div>
+    <div id="db-status">Connessione...</div>
+  </div>
+
+  <!-- SETUP PRIMO ACCESSO -->
+  <div id="setup-box">
+    <div class="setup-title"><i class="ti ti-shield" style="margin-right:4px;"></i>Primo accesso — Crea account Admin</div>
+    <div style="font-size:12px;color:#888;margin-bottom:10px;">Questo box appare solo la prima volta. Crea il tuo account admin.</div>
+    <div style="margin-bottom:8px;"><input type="text" id="setup-uname" placeholder="Username admin (es: admin)" autocapitalize="none" style="width:100%;padding:9px 11px;border:0.5px solid #ccc;border-radius:8px;font-size:14px;"></div>
+    <div style="position:relative;margin-bottom:8px;">
+      <input type="password" id="setup-pwd" placeholder="Password admin" style="width:100%;padding:9px 40px 9px 11px;border:0.5px solid #ccc;border-radius:8px;font-size:14px;">
+      <button class="pwd-toggle" onclick="togglePwdVisibility('setup-pwd',this)" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);"><i class="ti ti-eye"></i></button>
+    </div>
+    <button class="btn green" style="width:100%;justify-content:center;" onclick="createAdminAccount()"><i class="ti ti-user-plus"></i> Crea account admin</button>
+    <div id="setup-msg" style="font-size:12px;margin-top:8px;display:none;"></div>
+  </div>
+</div>
+
+<div id="main-app">
+  <div class="top-bar">
+    <div class="title"><i class="ti ti-sun" style="color:#1D9E75;margin-right:4px;"></i>Centri Estivi 2025</div>
+    <div class="right">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span class="user-badge" id="user-badge"></span>
+      <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i></button>
+    </div>
+  </div>
+  <div class="area-tabs" id="area-tabs">
+    <div class="area-tab active" onclick="switchArea('villa')"><i class="ti ti-building"></i> Villa Ester</div>
+    <div class="area-tab" onclick="switchArea('marano')"><i class="ti ti-tree"></i> Marano</div>
+    <div class="area-tab" onclick="switchArea('appartamento')"><i class="ti ti-home"></i> Appartamento</div>
+    <div class="area-tab" id="admin-tab" style="display:none;background:#E8E0F5;color:#5B2D8E;border-color:#C4B0E8;" onclick="switchArea('admin')"><i class="ti ti-shield"></i> Admin</div>
+  </div>
+  <div class="section-tabs" id="section-tabs"></div>
+  <div class="content-area" id="section-content"><div class="empty-state">Caricamento...</div></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+const FAKE_DOMAIN='@centri-estivi.app';
+const WA_NUMBER='393332488169';
+const WEEKS=[
+  {label:'08/06 – 12/06',dates:['Lun 08/06','Mar 09/06','Mer 10/06','Gio 11/06','Ven 12/06']},
+  {label:'15/06 – 19/06',dates:['Lun 15/06','Mar 16/06','Mer 17/06','Gio 18/06','Ven 19/06']},
+  {label:'22/06 – 26/06',dates:['Lun 22/06','Mar 23/06','Mer 24/06','Gio 25/06','Ven 26/06']},
+  {label:'29/06 – 03/07',dates:['Lun 29/06','Mar 30/06','Mer 01/07','Gio 02/07','Ven 03/07']},
+  {label:'06/07 – 11/07',dates:['Lun 06/07','Mar 07/07','Mer 08/07','Gio 09/07','Ven 11/07']},
+  {label:'13/07 – 17/07',dates:['Lun 13/07','Mar 14/07','Mer 15/07','Gio 16/07','Ven 17/07']},
+  {label:'20/07 – 24/07',dates:['Lun 20/07','Mar 21/07','Mer 22/07','Gio 23/07','Ven 24/07']},
+  {label:'27/07 – 31/07',dates:['Lun 27/07','Mar 28/07','Mer 29/07','Gio 30/07','Ven 31/07']},
+  {label:'03/08 – 07/08',dates:['Lun 03/08','Mar 04/08','Mer 05/08','Gio 06/08','Ven 07/08']},
+  {label:'17/08 – 21/08',dates:['Lun 17/08','Mar 18/08','Mer 19/08','Gio 20/08','Ven 21/08']},
+  {label:'24/08 – 28/08',dates:['Lun 24/08','Mar 25/08','Mer 26/08','Gio 27/08','Ven 28/08']},
+  {label:'31/08 – 04/09',dates:['Lun 01/09','Mar 02/09','Mer 03/09','Gio 04/09','Ven 05/09']}
+];
+
+const firebaseConfig={
+  apiKey:"AIzaSyBbyyT-i9dyTT-5MxC47lsGI46ZSbiwqTE",
+  authDomain:"centri-estivi-asp-2026.firebaseapp.com",
+  databaseURL:"https://centri-estivi-asp-2026-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"centri-estivi-asp-2026",
+  storageBucket:"centri-estivi-asp-2026.firebasestorage.app",
+  messagingSenderId:"627544943347",
+  appId:"1:627544943347:web:1dd804c943f1d65dc1a586"
+};
+
+let db,auth,dbData={},currentArea='villa',currentSection='presenze-ragazzi',currentWeek=0,currentUser=null,isAdmin=false,adminUsername='';
+
+firebase.initializeApp(firebaseConfig);
+db=firebase.database();
+auth=firebase.auth();
+
+// Controlla se esiste già un admin nel database
+db.ref('centri_estivi').on('value',snap=>{
+  dbData=snap.val()||{};
+  document.getElementById('db-status').textContent='Database connesso ✓';
+  document.getElementById('db-status').style.color='#1D9E75';
+  // Mostra setup box se non ci sono utenti
+  const users=dbData.users||{};
+  const hasAdmin=Object.values(users).some(u=>u.isAdmin);
+  document.getElementById('setup-box').style.display=hasAdmin?'none':'block';
+  if(document.getElementById('main-app').style.display==='block') renderSection();
+  setSyncStatus('ok');
+});
+
+// ── PASSWORD TOGGLE ───────────────────────────────────────
+function togglePwdVisibility(inputId,btn){
+  const input=document.getElementById(inputId);
+  const icon=btn.querySelector('i');
+  if(input.type==='password'){
+    input.type='text';
+    icon.className='ti ti-eye-off';
+  }else{
+    input.type='password';
+    icon.className='ti ti-eye';
+  }
+}
+
+// Toggle per i campi password nel pannello admin (generato dinamicamente)
+function toggleDynPwd(inputId,btn){
+  const input=document.getElementById(inputId);
+  const icon=btn.querySelector('i');
+  if(input.type==='password'){input.type='text';icon.className='ti ti-eye-off';}
+  else{input.type='password';icon.className='ti ti-eye';}
+}
+
+// ── SETUP PRIMO ACCESSO ───────────────────────────────────
+async function createAdminAccount(){
+  const uname=document.getElementById('setup-uname').value.trim().toLowerCase().replace(/\s/g,'_');
+  const pwd=document.getElementById('setup-pwd').value.trim();
+  const msg=document.getElementById('setup-msg');msg.style.display='none';
+  if(!uname||!pwd){showMsg(msg,'Inserisci username e password','#E24B4A');return;}
+  if(pwd.length<6){showMsg(msg,'Password minimo 6 caratteri','#E24B4A');return;}
+  try{
+    const cred=await auth.createUserWithEmailAndPassword(uname+FAKE_DOMAIN,pwd);
+    await db.ref('centri_estivi/users/'+cred.user.uid).set({username:uname,email:uname+FAKE_DOMAIN,isAdmin:true,created:new Date().toLocaleDateString('it-IT')});
+    showMsg(msg,'✓ Account admin creato! Ora accedi con le tue credenziali.','#1D9E75');
+    document.getElementById('setup-box').style.display='none';
+    document.getElementById('login-username').value=uname;
+  }catch(e){
+    showMsg(msg,e.code==='auth/email-already-in-use'?'Username già esistente':e.message,'#E24B4A');
+  }
+}
+
+// ── LOGIN ─────────────────────────────────────────────────
+async function doLogin(){
+  const uname=document.getElementById('login-username').value.trim().toLowerCase();
+  const pwd=document.getElementById('login-password').value;
+  const err=document.getElementById('login-error');err.style.display='none';
+  if(!uname||!pwd){err.textContent='Inserisci username e password';err.style.display='block';return;}
+  try{
+    const cred=await auth.signInWithEmailAndPassword(uname+FAKE_DOMAIN,pwd);
+    const uid=cred.user.uid;
+    const userData=dbData.users&&dbData.users[uid];
+    currentUser=uname;
+    isAdmin=userData&&userData.isAdmin===true;
+    adminUsername=isAdmin?uname:'';
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-app').style.display='block';
+    document.getElementById('user-badge').textContent=uname+(isAdmin?' ★':'');
+    document.getElementById('admin-tab').style.display=isAdmin?'flex':'none';
+    switchArea('villa');
+  }catch(e){
+    err.textContent='Username o password errati';err.style.display='block';
+  }
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('login-screen').style.display!=='none')doLogin();});
+
+function doLogout(){
+  auth.signOut();currentUser=null;isAdmin=false;
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-username').value='';
+  document.getElementById('login-password').value='';
+  document.getElementById('login-password').type='password';
+  document.querySelectorAll('.pwd-toggle i').forEach(i=>i.className='ti ti-eye');
+}
+
+// ── FIREBASE ──────────────────────────────────────────────
+function setSyncStatus(s){const d=document.getElementById('sync-dot');if(!d)return;d.className='sync-dot'+(s==='saving'?' saving':'');}
+function fbGet(path){const parts=path.split('/');let cur=dbData;for(const p of parts){if(cur==null)return null;cur=cur[p];}return cur??null;}
+function fbSet(path,value){setSyncStatus('saving');db.ref('centri_estivi/'+path).set(value).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('ok'));}
+function fbRemove(path){setSyncStatus('saving');db.ref('centri_estivi/'+path).remove().then(()=>setSyncStatus('ok'));}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function aLbl(){return{villa:'Villa Ester',marano:'Marano',appartamento:'Appartamento'}[currentArea]||currentArea;}
+function weekTabsHtml(){return '<div class="week-tabs">'+WEEKS.map((w,i)=>`<div class="week-tab${i===currentWeek?' active':''}" onclick="selWeek(${i})">${w.label}</div>`).join('')+'</div>';}
+function selWeek(i){currentWeek=i;renderSection();}
+
+// ── NAVIGAZIONE ───────────────────────────────────────────
+function switchArea(a){
+  currentArea=a;currentWeek=0;
+  document.querySelectorAll('.area-tab').forEach((t,i)=>t.classList.toggle('active',['villa','marano','appartamento','admin'][i]===a));
+  if(a==='admin'){renderAdmin();document.getElementById('section-tabs').innerHTML='';return;}
+  const secs=['presenze-ragazzi','presenze-educatori','turni','cassa','diario','comunicazioni','richieste','foto'];
+  const icons=['users','id-badge','calendar','cash','notebook','speakerphone','mail','camera'];
+  const labels=['Presenze ragazzi','Presenze educ.','Turni','Cassa','Diario','Comunicaz.','Richieste','Foto'];
+  document.getElementById('section-tabs').innerHTML=secs.map((s,i)=>`<div class="section-tab${s===currentSection?' active':''}" onclick="switchSection('${s}')"><i class="ti ti-${icons[i]}"></i> ${labels[i]}</div>`).join('');
+  renderSection();
+}
+function switchSection(s){
+  currentSection=s;currentWeek=0;
+  document.querySelectorAll('.section-tab').forEach(t=>t.classList.toggle('active',t.getAttribute('onclick')&&t.getAttribute('onclick').includes(`'${s}'`)));
+  renderSection();
+}
+function renderSection(){
+  if(currentArea==='admin'){renderAdmin();return;}
+  const c=document.getElementById('section-content');if(!c)return;
+  ({'presenze-ragazzi':()=>renderPresenze(c,'ragazzi',20),'presenze-educatori':()=>renderPresenze(c,'educatori',15),'turni':()=>renderTurni(c),'cassa':()=>renderCassa(c),'diario':()=>renderDiario(c),'comunicazioni':()=>renderComunicazioni(c),'richieste':()=>renderRichieste(c),'foto':()=>renderFoto(c)}[currentSection]||(() => {}))();
+}
+
+// ── PRESENZE ─────────────────────────────────────────────
+function renderPresenze(c,tipo,nRighe){
+  const isR=tipo==='ragazzi';const bp=`presenze_${tipo}/${currentArea}/w${currentWeek}`;
+  let h=`<div class="section-title"><i class="ti ti-${isR?'users':'id-badge'}"></i> ${isR?'Presenze ragazzi':'Presenze educatori'} — ${aLbl()}</div>`;
+  h+=weekTabsHtml();
+  h+=`<div class="table-wrap"><table><thead><tr><th style="min-width:90px;">${isR?'Iniziali':'Nome'}</th>`;
+  WEEKS[currentWeek].dates.forEach(d=>h+=`<th style="min-width:54px;text-align:center;">${d}</th>`);
+  if(!isR) h+=`<th style="min-width:80px;">Note</th>`;
+  h+=`</tr></thead><tbody>`;
+  for(let r=0;r<nRighe;r++){
+    h+=`<tr><td><input type="text" value="${esc(fbGet(`${bp}/names/r${r}`)||'')}" placeholder="${isR?'M.R.':'Nome'}" onblur="fbSet('${bp}/names/r${r}',this.value)"></td>`;
+    for(let col=0;col<5;col++){
+      const val=fbGet(`${bp}/cells/r${r}_c${col}`)||'';
+      if(isR){const cls=val==='P'?'present':val==='A'?'absent':'';h+=`<td class="pa-cell"><button class="pa-btn ${cls}" data-path="${bp}/cells/r${r}_c${col}" data-val="${val}" onclick="togglePA(this)">${val||'—'}</button></td>`;}
+      else{h+=`<td><input type="text" value="${esc(val)}" placeholder="orario" onblur="fbSet('${bp}/cells/r${r}_c${col}',this.value)" style="text-align:center;"></td>`;}
+    }
+    if(!isR) h+=`<td><input type="text" value="${esc(fbGet(`${bp}/rownotes/r${r}`)||'')}" placeholder="note" onblur="fbSet('${bp}/rownotes/r${r}',this.value)"></td>`;
+    h+=`</tr>`;
+  }
+  h+=`</tbody></table></div>`;
+  if(isR) h+=`<div class="notes-area"><label><i class="ti ti-notes"></i> Note settimana</label><textarea placeholder="Annotazioni generali..." onblur="fbSet('${bp}/weeknote',this.value)">${esc(fbGet(`${bp}/weeknote`)||'')}</textarea></div>`;
+  h+=`<div class="action-bar"><button class="btn green" onclick="exportPDF('${tipo}',${currentWeek},${nRighe})"><i class="ti ti-file-type-pdf"></i> Esporta PDF</button></div>`;
+  c.innerHTML=h;
+}
+function togglePA(btn){
+  const next=btn.dataset.val===''?'P':btn.dataset.val==='P'?'A':'';
+  btn.dataset.val=next;btn.textContent=next||'—';
+  btn.className='pa-btn '+(next==='P'?'present':next==='A'?'absent':'');
+  fbSet(btn.dataset.path,next);
+}
+function exportPDF(tipo,weekIdx,nRighe){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const isR=tipo==='ragazzi';const w=WEEKS[weekIdx];const bp=`presenze_${tipo}/${currentArea}/w${weekIdx}`;
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`${isR?'Presenze ragazzi':'Presenze educatori'} — ${aLbl()}`,14,15);
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`Settimana: ${w.label}`,14,22);
+  const head=[[isR?'Iniziali':'Educatore',...w.dates,'Note']];const body=[];
+  for(let r=0;r<nRighe;r++){
+    let row=[fbGet(`${bp}/names/r${r}`)||''];
+    for(let col=0;col<5;col++) row.push(fbGet(`${bp}/cells/r${r}_c${col}`)||'');
+    row.push(isR?(r===0?fbGet(`${bp}/weeknote`)||'':''):fbGet(`${bp}/rownotes/r${r}`)||'');
+    body.push(row);
+  }
+  doc.autoTable({head,body,startY:26,styles:{fontSize:9,cellPadding:2},headStyles:{fillColor:[29,158,117],textColor:255},columnStyles:{0:{cellWidth:28}}});
+  doc.save(`presenze_${tipo}_${currentArea}_${w.label.replace(/[\/\s\u2013]/g,'-')}.pdf`);
+}
+
+// ── TURNI ─────────────────────────────────────────────────
+function renderTurni(c){
+  const files=fbGet(`turni/${currentArea}`)||{};const list=Object.entries(files);
+  let h=`<div class="section-title"><i class="ti ti-calendar"></i> Turni e programmi — ${aLbl()}</div>`;
+  h+=`<div class="form-group"><label>Nome file</label><input type="text" id="turni-nome" placeholder="es. Turni settimana 08/06"></div>`;
+  h+=`<div class="form-group"><label>Link (Google Drive)</label><input type="text" id="turni-url" placeholder="https://drive.google.com/..."></div>`;
+  h+=`<button class="btn green" onclick="addTurno()"><i class="ti ti-plus"></i> Aggiungi</button>`;
+  if(list.length===0){h+=`<div class="empty-state" style="margin-top:16px;"><i class="ti ti-file-off" style="font-size:24px;display:block;margin-bottom:8px;"></i>Nessun file</div>`;}
+  else{h+=`<div style="margin-top:14px;">`;list.forEach(([key,f])=>{h+=`<div class="turni-card"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><i class="ti ti-file-text" style="color:#1D9E75;margin-right:5px;"></i>${f.nome}</div><div style="font-size:11px;color:#888;">${f.data}</div></div><div style="display:flex;gap:6px;flex-shrink:0;"><a href="${f.url}" target="_blank" class="btn small"><i class="ti ti-external-link"></i> Apri</a><button class="btn small" onclick="fbRemove('turni/${currentArea}/${key}')"><i class="ti ti-trash"></i></button></div></div>`;});h+=`</div>`;}
+  c.innerHTML=h;
+}
+function addTurno(){const nome=document.getElementById('turni-nome').value.trim();const url=document.getElementById('turni-url').value.trim();if(!nome||!url)return;fbSet(`turni/${currentArea}/f${Date.now()}`,{nome,url,data:new Date().toLocaleDateString('it-IT')});}
+
+// ── CASSA ─────────────────────────────────────────────────
+function renderCassa(c){
+  const bp=`cassa/${currentArea}/w${currentWeek}`;const datoVal=fbGet(`${bp}/dato`)||'';
+  const spese=fbGet(`${bp}/spese`)||{};const speseList=Object.entries(spese);
+  const tot=speseList.reduce((s,[,e])=>s+parseFloat(e.importo||0),0);const dato=parseFloat(datoVal||0);const resto=dato-tot;
+  let h=`<div class="section-title"><i class="ti ti-cash"></i> Foglio cassa — ${aLbl()}</div>`;
+  h+=weekTabsHtml();
+  h+=`<div class="form-group"><label>Importo dato a inizio settimana (€)</label><input type="number" id="cassa-dato" value="${datoVal}" placeholder="0.00" step="0.01" inputmode="decimal" onchange="fbSet('${bp}/dato',this.value);setTimeout(renderSection,400)"></div>`;
+  h+=`<div class="cassa-totals"><div class="cassa-total"><div class="lbl">Dato</div><div class="val">€ ${dato.toFixed(2)}</div></div><div class="cassa-total"><div class="lbl">Speso</div><div class="val" style="color:#E24B4A;">€ ${tot.toFixed(2)}</div></div><div class="cassa-total"><div class="lbl">Resto</div><div class="val ${resto<0?'neg':''}">€ ${resto.toFixed(2)}</div></div></div>`;
+  h+=`<div style="font-size:13px;font-weight:500;margin-bottom:8px;">Registra spesa</div>`;
+  h+=`<div class="form-group"><input type="text" id="spesa-desc" placeholder="Descrizione spesa"></div>`;
+  h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;"><input type="number" id="spesa-imp" placeholder="Importo €" step="0.01" inputmode="decimal" style="padding:10px 11px;border:0.5px solid #ccc;border-radius:8px;font-size:15px;"><input type="text" id="spesa-chi" placeholder="Chi ha pagato" style="padding:10px 11px;border:0.5px solid #ccc;border-radius:8px;font-size:15px;"></div>`;
+  h+=`<button class="btn green" onclick="addSpesa('${bp}')"><i class="ti ti-plus"></i> Aggiungi spesa</button>`;
+  if(speseList.length>0){h+=`<div class="table-wrap" style="margin-top:14px;"><table><thead><tr><th>Descrizione</th><th>Chi</th><th style="text-align:right;">€</th><th></th></tr></thead><tbody>`;speseList.forEach(([key,s])=>{h+=`<tr><td style="padding:7px 8px;">${s.desc}</td><td style="padding:7px 8px;">${s.chi||''}</td><td style="padding:7px 8px;text-align:right;font-weight:500;">${parseFloat(s.importo).toFixed(2)}</td><td style="padding:7px 8px;"><button class="btn small" onclick="fbRemove('${bp}/spese/${key}')"><i class="ti ti-trash"></i></button></td></tr>`;});h+=`</tbody></table></div>`;}
+  else{h+=`<div class="empty-state" style="padding:16px 0;">Nessuna spesa registrata</div>`;}
+  h+=`<div class="action-bar"><button class="btn green" onclick="exportCassaPDF('${bp}',${currentWeek})"><i class="ti ti-file-type-pdf"></i> Esporta PDF</button></div>`;
+  c.innerHTML=h;
+}
+function addSpesa(bp){const desc=document.getElementById('spesa-desc').value.trim();const imp=document.getElementById('spesa-imp').value;const chi=document.getElementById('spesa-chi').value.trim();if(!desc||!imp)return;fbSet(`${bp}/spese/s${Date.now()}`,{desc,importo:imp,chi,data:new Date().toLocaleDateString('it-IT')});}
+function exportCassaPDF(bp,weekIdx){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});
+  const dato=parseFloat(fbGet(`${bp}/dato`)||0);const spese=Object.values(fbGet(`${bp}/spese`)||{});const tot=spese.reduce((s,e)=>s+parseFloat(e.importo||0),0);const w=WEEKS[weekIdx];
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`Foglio cassa — ${aLbl()}`,14,15);
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`Settimana: ${w.label}`,14,22);doc.text(`Dato: € ${dato.toFixed(2)}   |   Speso: € ${tot.toFixed(2)}   |   Resto: € ${(dato-tot).toFixed(2)}`,14,29);
+  doc.autoTable({head:[['Descrizione','Chi ha pagato','Importo (€)','Data']],body:spese.map(s=>[s.desc,s.chi||'',parseFloat(s.importo).toFixed(2),s.data||'']),startY:34,styles:{fontSize:10,cellPadding:3},headStyles:{fillColor:[29,158,117],textColor:255}});
+  doc.save(`cassa_${currentArea}_${w.label.replace(/[\/\s\u2013]/g,'-')}.pdf`);
+}
+
+// ── DIARIO ────────────────────────────────────────────────
+function renderDiario(c){
+  const entries=fbGet(`diario/${currentArea}`)||{};const list=Object.entries(entries).sort((a,b)=>b[0].localeCompare(a[0]));
+  let h=`<div class="section-title"><i class="ti ti-notebook"></i> Diario di bordo — ${aLbl()}</div>`;
+  h+=`<div class="form-group"><label>Autore (iniziali)</label><input type="text" id="d-autore" placeholder="es. M.R." style="width:110px;"></div>`;
+  h+=`<div class="form-group"><label>Settimana</label><select id="d-week">${WEEKS.map((w,i)=>`<option value="${i}">${w.label}</option>`).join('')}</select></div>`;
+  h+=`<div class="form-group"><label>Resoconto della giornata</label><textarea id="d-testo" placeholder="Descrivi come è andata la giornata... (usa solo iniziali per i ragazzi)"></textarea></div>`;
+  h+=`<div class="action-bar"><button class="btn green" onclick="addDiario()"><i class="ti ti-check"></i> Salva nel diario</button></div>`;
+  if(list.length>0){h+=`<div style="margin-top:16px;">`;list.forEach(([key,e])=>{h+=`<div class="card"><div class="meta"><span>${e.data} — sett. ${e.week} — <strong>${e.autore}</strong></span>`;if(isAdmin) h+=`<button onclick="fbRemove('diario/${currentArea}/${key}')" style="border:none;background:none;cursor:pointer;color:#ccc;font-size:13px;padding:0;"><i class="ti ti-trash"></i></button>`;h+=`</div><div class="testo">${e.testo.replace(/\n/g,'<br>')}</div></div>`;});h+=`</div>`;}
+  else{h+=`<div class="empty-state" style="margin-top:16px;"><i class="ti ti-notebook" style="font-size:24px;display:block;margin-bottom:8px;"></i>Nessuna voce nel diario.</div>`;}
+  c.innerHTML=h;
+}
+function addDiario(){
+  const autore=document.getElementById('d-autore').value.trim();const testo=document.getElementById('d-testo').value.trim();const weekIdx=document.getElementById('d-week').value;
+  if(!autore||!testo){alert('Inserisci autore e testo.');return;}
+  fbSet(`diario/${currentArea}/e${Date.now()}`,{autore,testo,week:WEEKS[weekIdx].label,data:new Date().toLocaleDateString('it-IT')});
+  document.getElementById('d-testo').value='';document.getElementById('d-autore').value='';
+}
+
+// ── COMUNICAZIONI ─────────────────────────────────────────
+function renderComunicazioni(c){
+  const coms=fbGet(`comunicazioni/${currentArea}`)||{};const list=Object.entries(coms).sort((a,b)=>b[0].localeCompare(a[0]));
+  const waMsg=encodeURIComponent(`[Comunicazione ${aLbl()}] `);
+  let h=`<div class="section-title"><i class="ti ti-speakerphone"></i> Comunicazioni — ${aLbl()}</div>`;
+  h+=`<div class="info-box"><i class="ti ti-info-circle"></i> Bacheca della coordinatrice.</div>`;
+  h+=`<div class="form-group"><label>Nuova comunicazione</label><textarea id="com-testo" placeholder="Testo..."></textarea></div>`;
+  h+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><input type="checkbox" id="com-imp" style="width:18px;height:18px;"> <label for="com-imp" style="font-size:13px;color:#888;">Segna come urgente</label></div>`;
+  h+=`<div class="action-bar"><button class="btn green" onclick="addCom()"><i class="ti ti-send"></i> Pubblica</button><a href="https://wa.me/${WA_NUMBER}?text=${waMsg}" target="_blank" class="btn whatsapp"><i class="ti ti-brand-whatsapp"></i> Invia su WhatsApp</a></div>`;
+  if(list.length>0){h+=`<div style="margin-top:16px;">`;list.forEach(([key,e])=>{h+=`<div class="card ${e.importante?'urgent':''}"><div class="meta"><span>${e.data}${e.importante?' <span class="badge badge-urgent">Urgente</span>':''}</span>`;if(isAdmin) h+=`<button onclick="fbRemove('comunicazioni/${currentArea}/${key}')" style="border:none;background:none;cursor:pointer;color:#ccc;font-size:13px;padding:0;"><i class="ti ti-trash"></i></button>`;h+=`</div><div class="testo">${e.testo.replace(/\n/g,'<br>')}</div></div>`;});h+=`</div>`;}
+  else{h+=`<div class="empty-state" style="margin-top:16px;">Nessuna comunicazione pubblicata</div>`;}
+  c.innerHTML=h;
+}
+function addCom(){const testo=document.getElementById('com-testo').value.trim();const imp=document.getElementById('com-imp').checked;if(!testo)return;fbSet(`comunicazioni/${currentArea}/c${Date.now()}`,{testo,importante:imp,data:new Date().toLocaleDateString('it-IT')});document.getElementById('com-testo').value='';document.getElementById('com-imp').checked=false;}
+
+// ── RICHIESTE ─────────────────────────────────────────────
+function renderRichieste(c){
+  let h=`<div class="section-title"><i class="ti ti-mail"></i> Richieste alla coordinatrice — ${aLbl()}</div>`;
+  h+=`<div class="info-box"><i class="ti ti-mail"></i> Arriverà a <strong>p.montermini@asp.parma.it</strong></div>`;
+  h+=`<div class="form-group"><label>Tuo nome (iniziali)</label><input type="text" id="rich-autore" placeholder="es. M.R." style="width:110px;"></div>`;
+  h+=`<div class="form-group"><label>Oggetto</label><input type="text" id="rich-oggetto" placeholder="es. Richiesta materiali"></div>`;
+  h+=`<div class="form-group"><label>Messaggio</label><textarea id="rich-testo" placeholder="Descrivi la tua richiesta..."></textarea></div>`;
+  h+=`<div class="action-bar"><button class="btn green" onclick="inviaRichiesta()"><i class="ti ti-send"></i> Invia</button></div>`;
+  c.innerHTML=h;
+}
+function inviaRichiesta(){
+  const autore=document.getElementById('rich-autore').value.trim();const oggetto=document.getElementById('rich-oggetto').value.trim();const testo=document.getElementById('rich-testo').value.trim();
+  if(!autore||!testo){alert('Inserisci almeno le iniziali e il messaggio.');return;}
+  window.open(`mailto:p.montermini@asp.parma.it?subject=${encodeURIComponent(`[Centro Estivo - ${aLbl()}] ${oggetto||'Richiesta'}`)}&body=${encodeURIComponent(`Da: ${autore}\nArea: ${aLbl()}\n\n${testo}`)}`);
+}
+
+// ── FOTO ─────────────────────────────────────────────────
+function renderFoto(c){
+  const msgs={villa:encodeURIComponent(`[Villa Ester] 📸 `),marano:encodeURIComponent(`[Marano] 📸 `),appartamento:encodeURIComponent(`[Appartamento] 📸 `)};
+  c.innerHTML=`<div class="section-title"><i class="ti ti-camera"></i> Invia foto — ${aLbl()}</div><div class="info-box"><i class="ti ti-shield-lock"></i> Le foto vanno direttamente via WhatsApp, non vengono salvate nell'app.</div><div style="text-align:center;padding:24px 0;"><a href="https://wa.me/${WA_NUMBER}?text=${msgs[currentArea]}" target="_blank" class="btn whatsapp" style="font-size:15px;padding:13px 24px;display:inline-flex;"><i class="ti ti-brand-whatsapp" style="font-size:20px;"></i> Apri WhatsApp e invia</a><div style="margin-top:12px;font-size:12px;color:#888;">Precompilato per <strong>${aLbl()}</strong></div></div>`;
+}
+
+// ── ADMIN ─────────────────────────────────────────────────
+function renderAdmin(){
+  if(!isAdmin){document.getElementById('section-content').innerHTML='<div class="empty-state">Accesso negato</div>';return;}
+  const users=dbData.users||{};const list=Object.entries(users).filter(([,u])=>!u.isAdmin);
+  const c=document.getElementById('section-content');
+  let h=`<div class="section-title"><i class="ti ti-shield"></i> Pannello Admin <span class="badge badge-admin">Solo admin</span></div>`;
+  h+=`<div class="info-box">Crea gli account per gli educatori. Ogni educatore accede con username e password personalizzati.</div>`;
+  h+=`<div style="background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:14px;margin-bottom:16px;">`;
+  h+=`<div style="font-size:13px;font-weight:500;margin-bottom:10px;">Crea nuovo account educatore</div>`;
+  h+=`<div class="form-group"><label>Username (senza spazi)</label><input type="text" id="new-uname" placeholder="es. giulia_villa" autocapitalize="none" autocorrect="off"></div>`;
+  h+=`<div class="form-group"><label>Password</label><div class="form-pwd-wrap"><input type="password" id="new-pwd" placeholder="es. Estate2025!"><button class="form-pwd-toggle" onclick="toggleDynPwd('new-pwd',this)" type="button"><i class="ti ti-eye"></i></button></div></div>`;
+  h+=`<button class="btn green" onclick="createUser()"><i class="ti ti-user-plus"></i> Crea account</button>`;
+  h+=`<div id="create-msg" style="font-size:13px;margin-top:8px;display:none;"></div></div>`;
+  h+=`<div style="font-size:13px;font-weight:500;margin-bottom:10px;">Educatori (${list.length})</div>`;
+  if(list.length===0){h+=`<div class="empty-state">Nessun educatore registrato ancora</div>`;}
+  else{list.forEach(([uid,u])=>{h+=`<div class="admin-user-card"><div><div style="font-size:14px;font-weight:500;"><i class="ti ti-user" style="margin-right:4px;color:#1D9E75;"></i>${u.username}</div><div style="font-size:11px;color:#888;">Creato il ${u.created||'—'}</div></div><button class="btn small red" onclick="deleteUser('${uid}','${u.username}')"><i class="ti ti-trash"></i> Elimina</button></div>`;});}
+  c.innerHTML=h;
+}
+
+async function createUser(){
+  const uname=document.getElementById('new-uname').value.trim().toLowerCase().replace(/\s/g,'_');
+  const pwd=document.getElementById('new-pwd').value.trim();
+  const msg=document.getElementById('create-msg');msg.style.display='none';
+  if(!uname||!pwd){showMsg(msg,'Inserisci username e password','#E24B4A');return;}
+  if(pwd.length<6){showMsg(msg,'Password minimo 6 caratteri','#E24B4A');return;}
+  try{
+    const cred=await auth.createUserWithEmailAndPassword(uname+FAKE_DOMAIN,pwd);
+    await db.ref('centri_estivi/users/'+cred.user.uid).set({username:uname,email:uname+FAKE_DOMAIN,isAdmin:false,created:new Date().toLocaleDateString('it-IT')});
+    showMsg(msg,`✓ Account "${uname}" creato!`,'#1D9E75');
+    document.getElementById('new-uname').value='';document.getElementById('new-pwd').value='';
+  }catch(e){showMsg(msg,e.code==='auth/email-already-in-use'?`Username "${uname}" già esistente`:e.message,'#E24B4A');}
+}
+
+async function deleteUser(uid,uname){
+  if(!confirm(`Eliminare l'account "${uname}"?`))return;
+  try{
+    await db.ref('centri_estivi/users/'+uid).remove();
+    alert(`Account "${uname}" rimosso.\nPer eliminarlo anche da Firebase Authentication vai su Firebase Console → Authentication → Utenti e cerca ${uname+FAKE_DOMAIN}`);
+    renderAdmin();
+  }catch(e){alert('Errore: '+e.message);}
+}
+
+function showMsg(el,txt,color){el.textContent=txt;el.style.color=color;el.style.display='block';}
+</script>
+</body>
+</html>
