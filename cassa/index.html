@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Spese Servizi Educativi — ASP Parma</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f0;color:#1a1a1a;font-size:15px;-webkit-text-size-adjust:100%;}
+:root{--green:#1D9E75;--green-d:#0F6E56;--green-l:#E1F5EE;--red:#E24B4A;--red-l:#FCEBEB;--orange:#EF9F27;--orange-l:#FAEEDA;--line:#e0e0d8;--muted:#888;}
+
+/* login */
+#login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;background:#f5f5f0;}
+.login-card{background:#fff;border-radius:16px;border:0.5px solid var(--line);padding:2rem 1.5rem;display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%;max-width:340px;}
+.login-logo{font-size:18px;font-weight:600;color:#1a1a1a;text-align:center;line-height:1.4;}
+.login-icon{width:54px;height:54px;border-radius:15px;background:var(--green);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;}
+.login-sub{font-size:13px;color:var(--muted);text-align:center;}
+.login-card input{width:100%;padding:11px 14px;border:0.5px solid #ccc;border-radius:8px;font-size:16px;background:#fff;color:#1a1a1a;outline:none;}
+.login-card input:focus{border-color:var(--green);}
+.login-card button.main-btn{width:100%;padding:12px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;font-weight:500;}
+.pwd-wrap{position:relative;width:100%;}.pwd-wrap input{padding-right:44px;}
+.pwd-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;padding:0;display:flex;align-items:center;}
+#login-error{color:var(--red);font-size:13px;text-align:center;display:none;}
+#boot{min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;}
+
+/* layout */
+#main-app{display:none;min-height:100vh;}
+.top-bar{background:#fff;border-bottom:0.5px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
+.top-bar .back{color:var(--muted);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:4px;border:0.5px solid var(--line);padding:5px 9px;border-radius:8px;}
+.top-bar .title{font-size:14px;font-weight:600;color:#1a1a1a;flex:1;display:flex;align-items:center;gap:7px;}
+.top-bar .right{display:flex;align-items:center;gap:8px;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.sync-dot.saving{background:var(--orange);}
+.user-badge{font-size:12px;color:var(--muted);background:#f5f5f0;padding:3px 9px;border-radius:20px;}
+.logout-btn{font-size:13px;color:var(--muted);cursor:pointer;border:0.5px solid var(--line);padding:5px 10px;border-radius:8px;background:none;}
+.section-tabs{display:flex;gap:6px;padding:9px 16px;background:#fff;border-bottom:0.5px solid var(--line);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:51px;z-index:90;}
+.section-tabs::-webkit-scrollbar{display:none;}
+.section-tab{padding:6px 13px;border-radius:8px;border:0.5px solid var(--line);background:#f5f5f0;color:var(--muted);cursor:pointer;font-size:13px;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px;}
+.section-tab.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:500;}
+.content-area{padding:14px 16px 48px;max-width:1000px;margin:0 auto;}
+
+.section-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:18px 0 10px;display:flex;align-items:center;gap:7px;}
+.section-title:first-child{margin-top:4px;}
+.page-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
+.page-head h2{font-size:21px;font-weight:600;}
+.spacer{flex:1;}
+
+.grid{display:grid;gap:10px;}
+.grid.c3{grid-template-columns:repeat(3,1fr);}
+.grid.c4{grid-template-columns:repeat(4,1fr);}
+.grid.c2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:640px){.grid.c3,.grid.c4,.grid.c2{grid-template-columns:1fr 1fr;}}
+@media(max-width:420px){.grid.c3,.grid.c4{grid-template-columns:1fr;}}
+
+.stat{background:#fff;border:0.5px solid var(--line);border-radius:12px;padding:12px 14px;}
+.stat .band{height:4px;border-radius:6px;margin:-12px -14px 10px;}
+.stat .lbl{font-size:12px;color:var(--muted);margin-bottom:3px;}
+.stat .val{font-size:21px;font-weight:700;}
+.stat .sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+.card{background:#fff;border:0.5px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;}
+.svc-card .svc-head{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+.svc-card .svc-head h3{font-size:17px;font-weight:600;flex:1;}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.pill.green{background:var(--green-l);color:var(--green-d);}
+.pill.red{background:var(--red-l);color:#A32D2D;}
+.pill.cat{background:#f0ece2;color:#6b5d3e;}
+.pill.cash{background:var(--green-l);color:var(--green-d);}
+.pill.card{background:#E0EEFA;color:#1A5FA8;}
+.pill.admin{background:#E8E0F5;color:#5B2D8E;}
+
+.alert{display:flex;align-items:center;gap:11px;background:var(--orange-l);border:0.5px solid #ecd9a8;border-left:3px solid var(--orange);border-radius:0 10px 10px 0;padding:11px 13px;margin-bottom:8px;}
+.alert.crit{background:var(--red-l);border-color:#f0a99c;border-left-color:var(--red);}
+.alert i{font-size:20px;color:var(--orange);}.alert.crit i{color:var(--red);}
+
+.btn{padding:9px 14px;border-radius:8px;border:0.5px solid #ccc;background:#fff;color:#1a1a1a;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;touch-action:manipulation;}
+.btn.green{background:var(--green);color:#fff;border-color:var(--green);}
+.btn.red{background:var(--red);color:#fff;border-color:var(--red);}
+.btn.outline-red{background:var(--red-l);color:var(--red);border-color:#f0a99c;}
+.btn.small{padding:6px 10px;font-size:12px;}
+.btn.icon{padding:6px 8px;}
+.action-bar{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;}
+
+.table-wrap{overflow-x:auto;border-radius:10px;border:0.5px solid var(--line);background:#fff;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:540px;}
+th{background:#f5f5f0;padding:9px 11px;text-align:left;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;border-bottom:0.5px solid var(--line);}
+td{padding:9px 11px;border-bottom:0.5px solid var(--line);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+.txt-r{text-align:right;}.bold{font-weight:600;}.nowrap{white-space:nowrap;}
+.muted{color:var(--muted);}.tiny{font-size:11px;}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.filters select,.filters input{padding:8px 10px;border:0.5px solid var(--line);border-radius:8px;background:#fff;font-size:13px;color:#1a1a1a;}
+.cat-chip{display:inline-flex;align-items:center;gap:6px;background:#f0ece2;color:#5d5034;padding:6px 12px;border-radius:20px;font-size:13px;font-weight:500;margin:0 6px 6px 0;}
+.cat-chip button{background:none;border:none;color:#9a8f74;cursor:pointer;display:flex;padding:0;}
+.cat-chip button:hover{color:var(--red);}
+
+.empty-state{text-align:center;color:var(--muted);padding:34px 16px;}
+.empty-state i{font-size:34px;opacity:.4;display:block;margin-bottom:6px;}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(20,30,25,.45);display:flex;align-items:flex-end;justify-content:center;z-index:200;}
+.modal{background:#fff;width:100%;max-width:500px;border-radius:18px 18px 0 0;max-height:92vh;overflow-y:auto;}
+@media(min-width:640px){.overlay{align-items:center;}.modal{border-radius:18px;}}
+.modal .mh{display:flex;align-items:center;gap:9px;padding:16px 18px;border-bottom:0.5px solid var(--line);position:sticky;top:0;background:#fff;}
+.modal .mh h3{font-size:17px;font-weight:600;flex:1;}
+.modal .mh .x{background:#f0ece2;border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:17px;display:flex;align-items:center;justify-content:center;}
+.modal .mb{padding:18px;}
+.modal .mf{display:flex;gap:9px;padding:0 18px 18px;}.modal .mf .btn{flex:1;justify-content:center;}
+.form-group{margin-bottom:12px;}
+.form-group label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px;font-weight:500;}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 11px;border:0.5px solid #ccc;border-radius:8px;font-size:15px;background:#fff;color:#1a1a1a;font-family:inherit;outline:none;-webkit-appearance:none;}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--green);}
+.form-group textarea{min-height:70px;resize:vertical;}
+.form-row{display:flex;gap:10px;}.form-row>*{flex:1;}
+.info-box{background:#f5f5f0;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--muted);line-height:1.55;}
+.warn-box{background:var(--orange-l);border:0.5px solid #ecd9a8;border-radius:8px;padding:11px 13px;margin:10px 16px;font-size:13px;color:#854F0B;line-height:1.5;display:none;}
+
+.chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding:8px 4px 0;}
+.chart .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end;}
+.chart .bar{width:100%;max-width:42px;background:#9cc7ba;border-radius:5px 5px 0 0;min-height:2px;transition:height .3s;}
+.chart .bar.cur{background:var(--green);}
+.chart .bar-lbl{font-size:11px;color:var(--muted);}
+.chart .bar-val{font-size:10px;color:var(--muted);}
+
+#receipt-img{width:100%;border-radius:8px;}
+</style>
+</head>
+<body>
+
+<div id="boot"><i class="ti ti-loader-2"></i>&nbsp; Caricamento…</div>
+
+<!-- LOGIN -->
+<div id="login-screen" style="display:none;">
+  <div class="login-card">
+    <div class="login-icon"><i class="ti ti-wallet"></i></div>
+    <div class="login-logo">Spese Servizi Educativi<br>ASP Parma</div>
+    <div class="login-sub">Accesso riservato agli operatori</div>
+    <input type="text" id="login-username" placeholder="Username" autocomplete="username" autocapitalize="none" autocorrect="off"/>
+    <div class="pwd-wrap">
+      <input type="password" id="login-password" placeholder="Password" autocomplete="current-password"/>
+      <button class="pwd-toggle" type="button" onclick="togglePwd('login-password',this)"><i class="ti ti-eye"></i></button>
+    </div>
+    <button class="main-btn" onclick="doLogin()">Accedi</button>
+    <div id="login-error">Username o password errati</div>
+    <div class="login-sub" style="font-size:11px;">Si usano le stesse credenziali dei Centri Estivi.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="main-app">
+  <div class="top-bar">
+    <a class="back" href="../" title="Torna ai Centri Estivi"><i class="ti ti-arrow-left"></i> Centri</a>
+    <div class="title"><i class="ti ti-wallet" style="color:var(--green);"></i> Spese Servizi</div>
+    <div class="right">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span class="user-badge" id="user-badge"></span>
+      <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i></button>
+    </div>
+  </div>
+  <div class="warn-box" id="rules-warn">
+    <b>Permesso negato dal database.</b> Aggiungi le regole per il ramo <code>spese_servizi</code> nella console Firebase (vedi istruzioni). Finché non lo fai, i salvataggi non funzioneranno.
+  </div>
+  <div class="section-tabs" id="nav-tabs"></div>
+  <div class="content-area" id="content"></div>
+</div>
+
+<!-- MODAL ROOT -->
+<div id="modal-root"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+/* ============================================================
+   CONFIG — stesso progetto Firebase dei Centri Estivi
+   ============================================================ */
+const firebaseConfig={
+  apiKey:"AIzaSyBbyyT-i9dyTT-5MxC47lsGI46ZSbiwqTE",
+  authDomain:"centri-estivi-asp-2026.firebaseapp.com",
+  databaseURL:"https://centri-estivi-asp-2026-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"centri-estivi-asp-2026",
+  storageBucket:"centri-estivi-asp-2026.firebasestorage.app",
+  messagingSenderId:"627544943347",
+  appId:"1:627544943347:web:1dd804c943f1d65dc1a586"
+};
+const FAKE_DOMAIN='@centri-estivi.app';
+const ROOT='spese_servizi/data';        // dati dell'app spese
+const RECEIPTS='spese_servizi/receipts'; // scontrini (caricati a richiesta)
+const DEFAULT_CATS=['Beni di prima necessità','Trasporti','Attività educative/socializzazione','Materiale','Abbigliamento','Varie'];
+const DEFAULT_SERVICES=['Alveare','Pasubio','Housing','Centro Estivo P','Centro Estivo Villa Ester','Centro Estivo Marano'];
+const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+const auth=firebase.auth();
+
+/* ============================================================
+   STATO
+   ============================================================ */
+let D={};            // snapshot di ROOT
+let users={};        // centri_estivi/users
+let uid=null, uname='', isAdmin=false, myServiceId=null;
+let accessDenied=false;
+let view='dashboard';
+let seeded=false;
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const EUR=n=>'€ '+Number(n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});
+const todayISO=()=>new Date().toISOString().slice(0,10);
+const fmtData=iso=>{if(!iso)return'';const d=new Date(iso+(iso.length===10?'T00:00:00':''));return d.toLocaleDateString('it-IT');};
+const fmtDataOra=iso=>new Date(iso).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const asArr=x=>!x?[]:(Array.isArray(x)?x:Object.values(x)).filter(v=>v!=null);
+const entries=x=>x?Object.entries(x):[];
+function setSync(s){const d=$('sync-dot');if(d)d.className='sync-dot'+(s==='saving'?' saving':'');}
+function togglePwd(id,btn){const i=$(id);const ic=btn.querySelector('i');if(i.type==='password'){i.type='text';ic.className='ti ti-eye-off';}else{i.type='password';ic.className='ti ti-eye';}}
+
+function fbSet(path,val){setSync('saving');return db.ref('spese_servizi/'+path).set(val).then(()=>setSync('ok')).catch(handleWriteErr);}
+function fbUpdate(path,val){setSync('saving');return db.ref('spese_servizi/'+path).update(val).then(()=>setSync('ok')).catch(handleWriteErr);}
+function fbPush(path,val){setSync('saving');const r=db.ref('spese_servizi/'+path).push();return r.set(val).then(()=>{setSync('ok');return r.key;}).catch(handleWriteErr);}
+function fbRemove(path){setSync('saving');return db.ref('spese_servizi/'+path).remove().then(()=>setSync('ok')).catch(handleWriteErr);}
+function handleWriteErr(e){setSync('ok');if(e&&(e.code==='PERMISSION_DENIED'||/permission/i.test(e.message||''))){$('rules-warn').style.display='block';}console.error(e);}
+
+function logOp(action,detail){
+  return fbPush(ROOT+'/log',{ts:new Date().toISOString(),byName:uname,action,detail:detail||''});
+}
+
+/* compressione immagine scontrino */
+function compressImage(file,maxDim=1000,quality=0.55){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>{const img=new Image();img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>h&&w>maxDim){h=h*maxDim/w;w=maxDim;}else if(h>maxDim){w=w*maxDim/h;h=maxDim;}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      res(c.toDataURL('image/jpeg',quality));
+    };img.onerror=rej;img.src=e.target.result;};
+    r.onerror=rej;r.readAsDataURL(file);
+  });
+}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+auth.onAuthStateChanged(u=>{
+  if(u){ enterApp(u); }
+  else { $('boot').style.display='none'; $('main-app').style.display='none'; $('login-screen').style.display='flex'; }
+});
+
+function doLogin(){
+  const un=$('login-username').value.trim().toLowerCase();
+  const pw=$('login-password').value;
+  const err=$('login-error');err.style.display='none';
+  if(!un||!pw){err.textContent='Inserisci username e password';err.style.display='block';return;}
+  auth.signInWithEmailAndPassword(un+FAKE_DOMAIN,pw).catch(()=>{err.textContent='Username o password errati';err.style.display='block';});
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('login-screen').style.display!=='none')doLogin();});
+
+function doLogout(){auth.signOut();}
+
+function enterApp(u){
+  uid=u.uid;
+  $('boot').style.display='none';$('login-screen').style.display='none';$('main-app').style.display='block';
+  // utenti condivisi (per ruolo admin)
+  db.ref('centri_estivi/users').on('value',s=>{
+    users=s.val()||{};
+    const me=users[uid]||{};
+    uname=me.username||(u.email||'').replace(FAKE_DOMAIN,'');
+    isAdmin=me.isAdmin===true;
+    accessDenied=!isAdmin && appsOf(me).cassa===false;
+    $('user-badge').textContent=uname+(isAdmin?' ★':'');
+    refreshRole();
+  });
+  // dati app spese
+  db.ref(ROOT).on('value',s=>{
+    D=s.val()||{};
+    if(isAdmin) maybeSeed();
+    refreshRole();
+  });
+}
+
+function refreshRole(){
+  if(accessDenied){
+    $('nav-tabs').innerHTML='';
+    $('content').innerHTML=`<div class="empty-state" style="padding-top:60px;"><i class="ti ti-lock"></i>
+      <p style="font-size:16px;color:#1a1a1a;margin-bottom:6px;"><b>Accesso non consentito</b></p>
+      <p>Questo account non è abilitato all'app Cassa.<br>Contatta l'amministratore.</p>
+      <div style="margin-top:16px;display:flex;gap:8px;justify-content:center;">
+        <a class="btn" href="../"><i class="ti ti-arrow-left"></i> Centri Estivi</a>
+        <button class="btn outline-red" onclick="doLogout()"><i class="ti ti-logout"></i> Esci</button>
+      </div></div>`;
+    return;
+  }
+  myServiceId=null;
+  if(!isAdmin){
+    const us=(D.userServices&&D.userServices[uid])||null;
+    myServiceId=us?us.serviceId:null;
+    if(!['dashboard','report'].includes(view)) view='dashboard';
+  }
+  renderNav();render();
+}
+/* ambito di accesso: {centri,cassa}. Assenza = accesso pieno (compatibilità) */
+function appsOf(u){const a=(u&&u.apps)||{};return {centri:a.centri!==false,cassa:a.cassa!==false};}
+
+/* seed iniziale (solo admin, solo se vuoto) */
+function maybeSeed(){
+  if(seeded)return;
+  if(!D.services){
+    seeded=true;
+    const services={};DEFAULT_SERVICES.forEach(n=>{const k=db.ref(ROOT+'/services').push().key;services[k]={name:n,active:true};});
+    const cfg={budgetCash:0,budgetCard:0,lowBalanceThreshold:50,alertEmail:'p.montermini@asp.parma.it',periodMonth:new Date().getMonth(),periodYear:new Date().getFullYear()};
+    db.ref(ROOT).update({services,categories:DEFAULT_CATS,config:cfg}).catch(handleWriteErr);
+  }
+}
+
+/* ============================================================
+   CALCOLI
+   ============================================================ */
+function cfg(){return D.config||{budgetCash:0,budgetCard:0,lowBalanceThreshold:50,alertEmail:'',periodMonth:new Date().getMonth(),periodYear:new Date().getFullYear()};}
+function cats(){const c=D.categories?asArr(D.categories):[];return c.length?c:DEFAULT_CATS;}
+function servicesList(){return entries(D.services||{}).map(([id,s])=>({id,name:s.name,active:s.active!==false}));}
+function svcName(id){const s=(D.services||{})[id];return s?s.name:'—';}
+function expList(){return entries(D.expenses||{}).map(([id,e])=>({id,...e}));}
+function fundList(){return entries(D.funds||{}).map(([id,f])=>({id,...f}));}
+function inPeriod(iso,m,y){const d=new Date(iso+'T00:00:00');return d.getMonth()===m&&d.getFullYear()===y;}
+
+function totals(){
+  const c=cfg();const m=c.periodMonth,y=c.periodYear;
+  const exp=expList().filter(e=>inPeriod(e.date,m,y));
+  const fnd=fundList().filter(f=>inPeriod(f.date,m,y));
+  const cashDelivered=fnd.reduce((s,f)=>s+(+f.amount||0),0);
+  const cardSpent=exp.filter(e=>e.method==='carta').reduce((s,e)=>s+(+e.amount||0),0);
+  const cashSpent=exp.filter(e=>e.method==='contanti').reduce((s,e)=>s+(+e.amount||0),0);
+  const serviceBalance=sid=>fnd.filter(f=>f.serviceId===sid).reduce((s,f)=>s+(+f.amount||0),0)
+                            -exp.filter(e=>e.serviceId===sid&&e.method==='contanti').reduce((s,e)=>s+(+e.amount||0),0);
+  const alerts=servicesList().filter(s=>s.active).map(s=>({...s,balance:serviceBalance(s.id)})).filter(s=>s.balance<(c.lowBalanceThreshold||0));
+  return {m,y,exp,fnd,cashDelivered,cardSpent,cashSpent,
+    cashResidual:(+c.budgetCash||0)-cashDelivered,cardResidual:(+c.budgetCard||0)-cardSpent,
+    totalSpent:cardSpent+cashSpent,nMov:exp.length,nReceipts:exp.filter(e=>e.hasReceipt).length,
+    serviceBalance,alerts};
+}
+
+/* ============================================================
+   NAV + ROUTER
+   ============================================================ */
+const NAV_ADMIN=[['dashboard','Dashboard','ti-layout-dashboard'],['servizi','Servizi & Fondi','ti-building-community'],['movimenti','Movimenti','ti-history'],['utenti','Utenti','ti-users'],['categorie','Categorie','ti-tags'],['budget','Budget','ti-settings'],['report','Report PDF','ti-file-type-pdf'],['log','Log','ti-shield-check']];
+const NAV_EDU=[['dashboard','Il mio servizio','ti-layout-dashboard'],['report','Report PDF','ti-file-type-pdf']];
+function renderNav(){
+  const nav=isAdmin?NAV_ADMIN:NAV_EDU;
+  $('nav-tabs').innerHTML=nav.map(([k,l,ic])=>`<button class="section-tab ${view===k?'active':''}" onclick="go('${k}')"><i class="ti ${ic}"></i> ${l}</button>`).join('');
+}
+function go(k){view=k;renderNav();render();window.scrollTo(0,0);}
+
+function render(){
+  const c=$('content');
+  if(!D.config&&!isAdmin){c.innerHTML='<div class="empty-state"><i class="ti ti-clock"></i>Configurazione in corso. Attendi che l\'amministratore prepari l\'app.</div>';return;}
+  if(view==='dashboard')return isAdmin?renderAdminDash(c):renderEduService(c);
+  if(view==='servizi'&&isAdmin)return renderServizi(c);
+  if(view==='movimenti'&&isAdmin)return renderMovimenti(c);
+  if(view==='utenti'&&isAdmin)return renderUtenti(c);
+  if(view==='categorie'&&isAdmin)return renderCategorie(c);
+  if(view==='budget'&&isAdmin)return renderBudget(c);
+  if(view==='report')return renderReport(c);
+  if(view==='log'&&isAdmin)return renderLog(c);
+  c.innerHTML='';
+}
+
+/* ============================================================
+   DASHBOARD ADMIN
+   ============================================================ */
+function renderAdminDash(c){
+  const t=totals();const cc=cfg();
+  let h=`<div class="page-head"><h2>Dashboard</h2><span class="muted">${MESI[t.m]} ${t.y}</span><div class="spacer"></div><button class="btn small" onclick="go('budget')"><i class="ti ti-settings"></i> Periodo</button></div>`;
+  if(t.alerts.length){h+=t.alerts.map(s=>`<div class="alert ${s.balance<=0?'crit':''}"><i class="ti ti-alert-triangle"></i><div style="flex:1;"><b>${esc(s.name)}</b> — saldo contanti basso</div><b style="color:${s.balance<=0?'var(--red)':'#854F0B'}">${EUR(s.balance)}</b></div>`).join('');}
+  h+=`<div class="section-title"><i class="ti ti-cash"></i> Budget contanti</div><div class="grid c3">
+    ${stat('Budget iniziale mensile',EUR(cc.budgetCash),'','var(--green)')}
+    ${stat('Consegnato ai servizi',EUR(t.cashDelivered),'','var(--orange)')}
+    ${stat('Disponibilità residua',EUR(t.cashResidual),t.cashResidual<0?'Budget superato':'in cassa centrale',t.cashResidual<0?'var(--red)':'var(--green)')}</div>`;
+  h+=`<div class="section-title"><i class="ti ti-credit-card"></i> Budget carta</div><div class="grid c3">
+    ${stat('Budget iniziale mensile',EUR(cc.budgetCard),'','#1A5FA8')}
+    ${stat('Spese tramite carta',EUR(t.cardSpent),'','var(--orange)')}
+    ${stat('Disponibilità residua',EUR(t.cardResidual),t.cardResidual<0?'Budget superato':'',t.cardResidual<0?'var(--red)':'#1A5FA8')}</div>`;
+  h+=`<div class="section-title"><i class="ti ti-report-money"></i> Riepilogo generale</div><div class="grid c4">
+    ${stat('Totale spese mese',EUR(t.totalSpent))}
+    ${stat('Movimenti',t.nMov)}
+    ${stat('Scontrini caricati',t.nReceipts)}
+    ${stat('Alert attivi',t.alerts.length,'',t.alerts.length?'var(--red)':'#1a1a1a')}</div>`;
+  // grafico 6 mesi
+  h+=`<div class="section-title"><i class="ti ti-chart-bar"></i> Andamento spese (6 mesi)</div><div class="card"><div class="chart">`;
+  const bars=[];let max=1;
+  for(let i=5;i>=0;i--){const d=new Date(t.y,t.m-i,1);const mm=d.getMonth(),yy=d.getFullYear();
+    const tot=expList().filter(e=>inPeriod(e.date,mm,yy)).reduce((s,e)=>s+(+e.amount||0),0);
+    bars.push({lbl:MESI[mm].slice(0,3),tot,cur:i===0});max=Math.max(max,tot);}
+  h+=bars.map(b=>`<div class="bar-wrap"><div class="bar-val">${b.tot?EUR(b.tot).replace('€ ',''):''}</div><div class="bar ${b.cur?'cur':''}" style="height:${Math.max(2,b.tot/max*120)}px"></div><div class="bar-lbl">${b.lbl}</div></div>`).join('');
+  h+=`</div></div>`;
+  // ultime spese
+  h+=`<div class="section-title"><i class="ti ti-receipt"></i> Ultime spese</div>`;
+  const recent=expList().sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0)).slice(0,6);
+  h+=expTable(recent,true,false);
+  c.innerHTML=h;
+}
+function stat(lbl,val,sub,color){return `<div class="stat">${color?`<div class="band" style="background:${color}"></div>`:''}<div class="lbl">${lbl}</div><div class="val" ${color?`style="color:${color}"`:''}>${val}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;}
+
+/* ============================================================
+   DASHBOARD EDUCATORE
+   ============================================================ */
+function renderEduService(c){
+  if(!myServiceId){c.innerHTML='<div class="empty-state"><i class="ti ti-building"></i>Nessun servizio assegnato al tuo profilo. Contatta l\'amministratore.</div>';return;}
+  const t=totals();const bal=t.serviceBalance(myServiceId);
+  const low=bal<(cfg().lowBalanceThreshold||0);
+  const exp=t.exp.filter(e=>e.serviceId===myServiceId).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const recd=t.fnd.filter(f=>f.serviceId===myServiceId).reduce((s,f)=>s+(+f.amount||0),0);
+  let h=`<div class="page-head"><h2>${esc(svcName(myServiceId))}</h2><span class="muted">${MESI[t.m]} ${t.y}</span><div class="spacer"></div><button class="btn green" onclick="openExpense()"><i class="ti ti-plus"></i> Nuova spesa</button></div>`;
+  if(low)h+=`<div class="alert ${bal<=0?'crit':''}"><i class="ti ti-alert-triangle"></i><div style="flex:1;">Saldo contanti basso. Richiedi un rifornimento all'amministratore.</div><b>${EUR(bal)}</b></div>`;
+  h+=`<div class="grid c3">
+    ${stat('Saldo contanti',EUR(bal),'',low?'var(--red)':'var(--green)')}
+    ${stat('Ricevuto (mese)',EUR(recd),'','var(--green)')}
+    ${stat('Spese (mese)',exp.length,EUR(exp.reduce((s,e)=>s+(+e.amount||0),0)),'var(--orange)')}</div>`;
+  h+=`<div class="section-title"><i class="ti ti-history"></i> Storico spese</div>`+expTable(exp,false,true);
+  c.innerHTML=h;
+}
+
+/* ============================================================
+   TABELLA SPESE
+   ============================================================ */
+function expTable(list,showSvc,canEdit){
+  let h=`<div class="table-wrap"><table><thead><tr><th>Data</th>${showSvc?'<th>Servizio</th>':''}<th>Categoria</th><th>Metodo</th><th>Descrizione</th><th>Inserita da</th><th>Scontr.</th><th class="txt-r">Importo</th>${canEdit?'<th></th>':''}</tr></thead><tbody>`;
+  if(!list.length)h+=`<tr><td colspan="9"><div class="empty-state"><i class="ti ti-receipt"></i>Nessuna spesa.</div></td></tr>`;
+  list.forEach(e=>{
+    h+=`<tr><td class="nowrap">${fmtData(e.date)}</td>${showSvc?`<td>${esc(svcName(e.serviceId))}</td>`:''}
+      <td><span class="pill cat">${esc(e.category)}</span></td>
+      <td><span class="pill ${e.method==='carta'?'card':'cash'}">${e.method}</span></td>
+      <td>${esc(e.description)||'<span class="muted">—</span>'}</td>
+      <td class="tiny muted nowrap">${esc(e.byName)}<br>${e.ts?fmtDataOra(e.ts):''}</td>
+      <td>${e.hasReceipt?`<button class="btn small icon" onclick="viewReceipt('${e.id}')"><i class="ti ti-eye"></i></button>`:'<span class="muted">—</span>'}</td>
+      <td class="txt-r bold nowrap">${EUR(e.amount)}</td>
+      ${canEdit?`<td><div style="display:flex;gap:5px;"><button class="btn small icon" onclick="openExpense('${e.id}')"><i class="ti ti-pencil"></i></button><button class="btn small icon outline-red" onclick="delExpense('${e.id}')"><i class="ti ti-trash"></i></button></div></td>`:''}</tr>`;
+  });
+  h+=`</tbody></table></div>`;return h;
+}
+
+function viewReceipt(id){
+  db.ref(RECEIPTS+'/'+id).once('value').then(s=>{
+    const url=s.val();
+    openModal('Scontrino','ti-receipt',url?`<img id="receipt-img" src="${url}" alt="scontrino">`:'<p class="muted">Immagine non disponibile.</p>','');
+  });
+}
+function delExpense(id){
+  if(!confirm('Eliminare questa spesa?'))return;
+  const e=(D.expenses||{})[id]||{};
+  if(e.hasReceipt)fbRemove(RECEIPTS+'/'+id);
+  fbRemove(ROOT+'/expenses/'+id).then(()=>logOp('Eliminazione spesa',EUR(e.amount)+' · '+svcName(e.serviceId)));
+}
+
+/* ============================================================
+   MODALE SPESA
+   ============================================================ */
+let pendingReceipt=null;
+function openExpense(id){
+  pendingReceipt=null;
+  const e=id?{id,...(D.expenses||{})[id]}:{};
+  const fixed=!isAdmin; const sid=fixed?myServiceId:(e.serviceId||servicesList()[0]?.id);
+  const svcOpts=servicesList().map(s=>`<option value="${s.id}" ${s.id===sid?'selected':''}>${esc(s.name)}</option>`).join('');
+  const catOpts=cats().map(ct=>`<option value="${esc(ct)}" ${ct===e.category?'selected':''}>${esc(ct)}</option>`).join('');
+  const body=`
+    ${fixed?'':`<div class="form-group"><label>Servizio</label><select id="e-svc">${svcOpts}</select></div>`}
+    <div class="form-group"><div class="form-row">
+      <div><label>Data</label><input type="date" id="e-date" value="${e.date||todayISO()}"></div>
+      <div><label>Importo €</label><input type="number" inputmode="decimal" id="e-amt" value="${e.amount!=null?e.amount:''}" placeholder="0,00"></div>
+    </div></div>
+    <div class="form-group"><div class="form-row">
+      <div><label>Metodo</label><select id="e-method"><option value="contanti" ${e.method!=='carta'?'selected':''}>Contanti</option><option value="carta" ${e.method==='carta'?'selected':''}>Carta</option></select></div>
+      <div><label>Categoria</label><select id="e-cat">${catOpts}</select></div>
+    </div></div>
+    <div class="form-group"><label>Descrizione / motivazione</label><textarea id="e-desc" placeholder="Cosa è stato acquistato e perché…">${esc(e.description)}</textarea></div>
+    <div class="form-group"><label>Foto / scansione scontrino</label>
+      <input type="file" id="e-file" accept="image/*" capture="environment" style="display:none" onchange="onReceiptFile(this)">
+      <button class="btn" style="width:100%;justify-content:center" onclick="document.getElementById('e-file').click()"><i class="ti ti-receipt"></i> <span id="e-file-lbl">${e.hasReceipt?'Scontrino allegato (sostituisci)':'Carica / scatta foto'}</span></button>
+      <div id="e-file-prev"></div>
+    </div>`;
+  openModal(id?'Modifica spesa':'Nuova spesa','ti-receipt',body,
+    `<button class="btn" onclick="closeModal()">Annulla</button><button class="btn green" id="e-save" onclick="saveExpense(${id?`'${id}'`:'null'},${fixed})">Salva</button>`);
+}
+function onReceiptFile(input){
+  const f=input.files&&input.files[0];if(!f)return;
+  $('e-file-lbl').textContent='Compressione…';
+  compressImage(f).then(d=>{pendingReceipt=d;$('e-file-lbl').textContent=f.name;$('e-file-prev').innerHTML=`<img src="${d}" style="margin-top:10px;max-height:150px;border-radius:8px;border:0.5px solid var(--line)">`;})
+  .catch(()=>{$('e-file-lbl').textContent='Errore immagine';});
+}
+function saveExpense(id,fixed){
+  const amt=parseFloat($('e-amt').value);
+  if(!amt||amt<=0){alert('Inserisci un importo valido.');return;}
+  const serviceId=fixed?myServiceId:$('e-svc').value;
+  const rec={serviceId,date:$('e-date').value,amount:amt,method:$('e-method').value,category:$('e-cat').value,description:$('e-desc').value.trim()};
+  $('e-save').disabled=true;
+  const finish=key=>{
+    const after=()=>{ if(!cats().includes(rec.category))fbSet(ROOT+'/categories',[...cats(),rec.category]); closeModal();
+      logOp(id?'Modifica spesa':'Inserimento spesa',EUR(amt)+' · '+svcName(serviceId)+' · '+rec.category+' · '+rec.method); };
+    if(pendingReceipt){fbSet(RECEIPTS+'/'+key,pendingReceipt).then(()=>fbUpdate(ROOT+'/expenses/'+key,{hasReceipt:true})).then(after);}
+    else after();
+  };
+  if(id){
+    const prev=(D.expenses||{})[id]||{};
+    fbUpdate(ROOT+'/expenses/'+id,{...rec,hasReceipt:prev.hasReceipt||false,by:prev.by||uid,byName:prev.byName||uname,ts:prev.ts||new Date().toISOString()}).then(()=>finish(id));
+  }else{
+    fbPush(ROOT+'/expenses',{...rec,hasReceipt:false,by:uid,byName:uname,ts:new Date().toISOString()}).then(key=>finish(key));
+  }
+}
+
+/* ============================================================
+   SERVIZI & FONDI
+   ============================================================ */
+function renderServizi(c){
+  const t=totals();
+  let h=`<div class="page-head"><h2>Servizi & Fondi</h2><div class="spacer"></div><button class="btn green" onclick="openService()"><i class="ti ti-plus"></i> Nuovo servizio</button></div><div class="grid c2">`;
+  servicesList().forEach(s=>{
+    const bal=t.serviceBalance(s.id);
+    const dels=t.fnd.filter(f=>f.serviceId===s.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const recd=dels.reduce((x,f)=>x+(+f.amount||0),0);
+    const low=bal<(cfg().lowBalanceThreshold||0);
+    h+=`<div class="card svc-card"><div class="svc-head"><i class="ti ti-building-community" style="color:var(--green)"></i><h3>${esc(s.name)} ${s.active?'':'<span class="muted tiny">(disattivo)</span>'}</h3>
+      <span class="pill ${low?'red':'green'}">Saldo ${EUR(bal)}</span></div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">${stat('Ricevuto (mese)',EUR(recd))}${stat('Consegne',dels.length)}</div>`;
+    if(dels.length)h+=`<div class="tiny muted" style="line-height:1.6;margin-bottom:8px;">`+dels.slice(0,3).map(f=>`<div style="display:flex;justify-content:space-between"><span>${fmtData(f.date)} · ${esc(f.operator)}</span><b>${EUR(f.amount)}</b></div>`).join('')+`</div>`;
+    h+=`<div style="display:flex;gap:8px"><button class="btn green small" style="flex:1;justify-content:center" onclick="openFund('${s.id}')"><i class="ti ti-send"></i> Consegna fondi</button>
+      <button class="btn small icon" onclick="openService('${s.id}')"><i class="ti ti-pencil"></i></button></div></div>`;
+  });
+  h+=`</div>`;c.innerHTML=h;
+}
+function openService(id){
+  const s=id?{id,...(D.services||{})[id]}:{active:true};
+  const body=`<div class="form-group"><label>Nome del servizio</label><input id="s-name" value="${esc(s.name)}" placeholder="es. Centro Estivo Nuovo"></div>
+    ${id?`<div class="form-group"><label><input type="checkbox" id="s-active" ${s.active!==false?'checked':''} style="width:auto;margin-right:7px;vertical-align:middle">Servizio attivo</label></div>`:''}`;
+  openModal(id?'Modifica servizio':'Nuovo servizio','ti-building-community',body,
+    `<button class="btn" onclick="closeModal()">Annulla</button><button class="btn green" onclick="saveService(${id?`'${id}'`:'null'})">Salva</button>`);
+}
+function saveService(id){
+  const name=$('s-name').value.trim();if(!name)return;
+  if(id){const active=$('s-active').checked;fbUpdate(ROOT+'/services/'+id,{name,active}).then(()=>logOp('Modifica servizio',name));}
+  else fbPush(ROOT+'/services',{name,active:true}).then(()=>logOp('Creazione servizio',name));
+  closeModal();
+}
+function openFund(sid){
+  const t=totals();
+  const body=`<div class="info-box">Cassa centrale disponibile: <b>${EUR(t.cashResidual)}</b></div>
+    <div class="form-group"><label>Importo consegnato (contanti) €</label><input type="number" inputmode="decimal" id="f-amt" placeholder="0,00"></div>
+    <div class="form-group"><div class="form-row">
+      <div><label>Data consegna</label><input type="date" id="f-date" value="${todayISO()}"></div>
+      <div><label>Operatore</label><input id="f-op" value="${esc(uname)}"></div>
+    </div></div>
+    <div class="info-box">L'importo verrà sottratto automaticamente dalla cassa centrale.</div>`;
+  openModal('Consegna fondi · '+esc(svcName(sid)),'ti-send',body,
+    `<button class="btn" onclick="closeModal()">Annulla</button><button class="btn green" onclick="saveFund('${sid}')">Conferma</button>`);
+}
+function saveFund(sid){
+  const amt=parseFloat($('f-amt').value);if(!amt||amt<=0)return;
+  fbPush(ROOT+'/funds',{serviceId:sid,amount:amt,date:$('f-date').value,operator:$('f-op').value.trim(),by:uid,byName:uname,ts:new Date().toISOString()})
+    .then(()=>logOp('Consegna fondi',EUR(amt)+' → '+svcName(sid)+' (op. '+$('f-op').value.trim()+')'));
+  closeModal();
+}
+
+/* ============================================================
+   MOVIMENTI (admin, filtri)
+   ============================================================ */
+let mf={month:'',year:'',svc:'',cat:'',user:'',method:''};
+function renderMovimenti(c){
+  if(mf.month===''&&mf.year===''){mf.month=cfg().periodMonth;mf.year=cfg().periodYear;}
+  const years=[...new Set([new Date().getFullYear(),...expList().map(e=>new Date(e.date+'T00:00:00').getFullYear())])].sort((a,b)=>b-a);
+  let list=expList().filter(e=>{const d=new Date(e.date+'T00:00:00');
+    if(mf.month!==''&&d.getMonth()!==+mf.month)return false;
+    if(mf.year!==''&&d.getFullYear()!==+mf.year)return false;
+    if(mf.svc&&e.serviceId!==mf.svc)return false;
+    if(mf.cat&&e.category!==mf.cat)return false;
+    if(mf.user&&e.by!==mf.user)return false;
+    if(mf.method&&e.method!==mf.method)return false;return true;
+  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const tot=list.reduce((s,e)=>s+(+e.amount||0),0);
+  let h=`<div class="page-head"><h2>Movimenti</h2><div class="spacer"></div><button class="btn green" onclick="openExpense()"><i class="ti ti-plus"></i> Nuova spesa</button></div>`;
+  h+=`<div class="filters">
+    <select onchange="mf.month=this.value;render()"><option value="">Tutti i mesi</option>${MESI.map((m,i)=>`<option value="${i}" ${+mf.month===i?'selected':''}>${m}</option>`).join('')}</select>
+    <select onchange="mf.year=this.value;render()"><option value="">Tutti gli anni</option>${years.map(y=>`<option value="${y}" ${+mf.year===y?'selected':''}>${y}</option>`).join('')}</select>
+    <select onchange="mf.svc=this.value;render()"><option value="">Tutti i servizi</option>${servicesList().map(s=>`<option value="${s.id}" ${mf.svc===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+    <select onchange="mf.cat=this.value;render()"><option value="">Tutte le categorie</option>${cats().map(ct=>`<option value="${esc(ct)}" ${mf.cat===ct?'selected':''}>${esc(ct)}</option>`).join('')}</select>
+    <select onchange="mf.user=this.value;render()"><option value="">Tutti gli operatori</option>${entries(users).map(([id,u])=>`<option value="${id}" ${mf.user===id?'selected':''}>${esc(u.username)}</option>`).join('')}</select>
+    <select onchange="mf.method=this.value;render()"><option value="">Tutti i metodi</option><option value="contanti" ${mf.method==='contanti'?'selected':''}>Contanti</option><option value="carta" ${mf.method==='carta'?'selected':''}>Carta</option></select>
+  </div>`;
+  h+=`<div class="muted" style="margin-bottom:10px;">${list.length} movimenti · totale <b style="color:#1a1a1a">${EUR(tot)}</b></div>`;
+  h+=expTable(list,true,true);
+  c.innerHTML=h;
+}
+
+/* ============================================================
+   UTENTI
+   ============================================================ */
+function renderUtenti(c){
+  let h=`<div class="page-head"><h2>Utenti</h2><div class="spacer"></div><button class="btn green" onclick="openUser()"><i class="ti ti-user-plus"></i> Nuovo account</button></div>`;
+  h+=`<div class="info-box">Gli account sono condivisi con l'app Centri Estivi. Qui imposti per ognuno l'<b>ambito di accesso</b> (Centri Estivi e/o Cassa), il servizio assegnato e crei nuovi account.</div>`;
+  h+=`<div class="table-wrap"><table><thead><tr><th>Username</th><th>Ruolo</th><th>Servizio</th><th>Centri</th><th>Cassa</th><th>Accesso</th><th></th></tr></thead><tbody>`;
+  const list=entries(users);
+  if(!list.length)h+=`<tr><td colspan="7"><div class="empty-state"><i class="ti ti-users"></i>Nessun utente.</div></td></tr>`;
+  const yes='<span class="pill green">Sì</span>',no='<span class="pill red">No</span>';
+  list.forEach(([id,u])=>{
+    const us=(D.userServices&&D.userServices[id])||{};
+    const active=us.active!==false;const ap=appsOf(u);
+    h+=`<tr><td class="bold">${esc(u.username)}</td>
+      <td>${u.isAdmin?'<span class="pill admin">Amministratore</span>':'<span class="pill green">Educatore</span>'}</td>
+      <td>${u.isAdmin?'<span class="muted">—</span>':esc(svcName(us.serviceId))}</td>
+      <td>${u.isAdmin?yes:(ap.centri?yes:no)}</td>
+      <td>${u.isAdmin?yes:(ap.cassa?yes:no)}</td>
+      <td>${u.isAdmin?'<span class="muted">—</span>':(active?'<span class="pill green">Attivo</span>':'<span class="pill red">Disattivato</span>')}</td>
+      <td>${u.isAdmin?'':`<button class="btn small icon" onclick="openAssign('${id}')"><i class="ti ti-pencil"></i></button>`}</td></tr>`;
+  });
+  h+=`</tbody></table></div>`;c.innerHTML=h;
+}
+function openAssign(id){
+  const u=users[id]||{};const us=(D.userServices&&D.userServices[id])||{};const ap=appsOf(u);
+  const opts=servicesList().map(s=>`<option value="${s.id}" ${us.serviceId===s.id?'selected':''}>${esc(s.name)}</option>`).join('');
+  const body=`<div class="info-box">Utente: <b>${esc(u.username)}</b></div>
+    <div class="form-group"><label>Ambito di accesso</label>
+      <label style="font-weight:400;display:flex;align-items:center;gap:8px;margin-bottom:6px;"><input type="checkbox" id="a-centri" ${ap.centri?'checked':''} style="width:auto">App Centri Estivi (tutta l'app)</label>
+      <label style="font-weight:400;display:flex;align-items:center;gap:8px;"><input type="checkbox" id="a-cassa" ${ap.cassa?'checked':''} style="width:auto">App Cassa (questa)</label>
+    </div>
+    <div class="form-group"><label>Servizio assegnato</label><select id="a-svc"><option value="">— nessuno —</option>${opts}</select></div>
+    <div class="form-group"><label style="font-weight:400;display:flex;align-items:center;gap:8px;"><input type="checkbox" id="a-active" ${us.active!==false?'checked':''} style="width:auto">Accesso attivo (in Cassa)</label></div>`;
+  openModal('Modifica accesso · '+esc(u.username),'ti-user',body,
+    `<button class="btn" onclick="closeModal()">Annulla</button><button class="btn green" onclick="saveAssign('${id}')">Salva</button>`);
+}
+function saveAssign(id){
+  const centri=$('a-centri').checked, cassa=$('a-cassa').checked;
+  Promise.all([
+    db.ref('centri_estivi/users/'+id+'/apps').set({centri,cassa}).catch(handleWriteErr),
+    fbSet(ROOT+'/userServices/'+id,{serviceId:$('a-svc').value||null,active:$('a-active').checked})
+  ]).then(()=>logOp('Modifica accesso utente',(users[id]?users[id].username:id)+' · Centri:'+(centri?'sì':'no')+' Cassa:'+(cassa?'sì':'no')));
+  closeModal();
+}
+function openUser(){
+  const opts=servicesList().map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  const body=`<div class="form-group"><label>Username</label><input id="u-name" autocapitalize="none" placeholder="es. mariarossi"></div>
+    <div class="form-group"><label>Password (min 6 caratteri)</label><input id="u-pwd" type="text" placeholder="••••••"></div>
+    <div class="form-group"><label>Ambito di accesso</label>
+      <label style="font-weight:400;display:flex;align-items:center;gap:8px;margin-bottom:6px;"><input type="checkbox" id="u-centri" style="width:auto">App Centri Estivi (tutta l'app)</label>
+      <label style="font-weight:400;display:flex;align-items:center;gap:8px;"><input type="checkbox" id="u-cassa" checked style="width:auto">App Cassa (questa)</label>
+    </div>
+    <div class="form-group"><label>Servizio assegnato (per la Cassa)</label><select id="u-svc">${opts}</select></div>
+    <div class="info-box">Spunta solo "Cassa" per un account che accede esclusivamente a questa app; spunta entrambe per un accesso completo.</div>`;
+  openModal('Nuovo account','ti-user-plus',body,
+    `<button class="btn" onclick="closeModal()">Annulla</button><button class="btn green" id="u-save" onclick="createUser()">Crea</button>`);
+}
+function createUser(){
+  const un=$('u-name').value.trim().toLowerCase();const pw=$('u-pwd').value;const svc=$('u-svc').value;
+  const centri=$('u-centri').checked, cassa=$('u-cassa').checked;
+  if(!un||!pw){alert('Inserisci username e password.');return;}
+  if(pw.length<6){alert('La password deve avere almeno 6 caratteri.');return;}
+  if(!centri&&!cassa){alert('Seleziona almeno un ambito di accesso.');return;}
+  $('u-save').disabled=true;
+  const sec=firebase.apps.find(a=>a.name==='sec')||firebase.initializeApp(firebaseConfig,'sec');
+  sec.auth().createUserWithEmailAndPassword(un+FAKE_DOMAIN,pw).then(cred=>{
+    const newUid=cred.user.uid;
+    return db.ref('centri_estivi/users/'+newUid).set({username:un,email:un+FAKE_DOMAIN,isAdmin:false,created:new Date().toLocaleDateString('it-IT'),apps:{centri,cassa}})
+      .then(()=>fbSet(ROOT+'/userServices/'+newUid,{serviceId:svc,active:true}))
+      .then(()=>sec.auth().signOut());
+  }).then(()=>{logOp('Creazione account',un+' · Centri:'+(centri?'sì':'no')+' Cassa:'+(cassa?'sì':'no'));closeModal();})
+  .catch(e=>{$('u-save').disabled=false;alert('Errore: '+(e.code==='auth/email-already-in-use'?'username già esistente':e.message));});
+}
+
+/* ============================================================
+   CATEGORIE
+   ============================================================ */
+function renderCategorie(c){
+  let h=`<div class="page-head"><h2>Categorie di spesa</h2></div><div class="card">
+    <div style="display:flex;gap:8px;margin-bottom:16px;"><input id="c-new" placeholder="Nuova categoria" style="flex:1;padding:10px 11px;border:0.5px solid #ccc;border-radius:8px;font-size:15px;" onkeydown="if(event.key==='Enter')addCat()"><button class="btn green" onclick="addCat()"><i class="ti ti-plus"></i> Aggiungi</button></div><div>`;
+  const used=ct=>expList().some(e=>e.category===ct);
+  cats().forEach(ct=>{h+=`<span class="cat-chip">${esc(ct)}${used(ct)?'':`<button onclick="delCat('${esc(ct).replace(/'/g,"\\'")}')"><i class="ti ti-x"></i></button>`}</span>`;});
+  h+=`</div><div class="info-box" style="margin-top:14px;">Le categorie già usate in una spesa non possono essere rimosse.</div></div>`;
+  c.innerHTML=h;
+}
+function addCat(){const v=$('c-new').value.trim();if(!v||cats().includes(v))return;fbSet(ROOT+'/categories',[...cats(),v]).then(()=>logOp('Nuova categoria',v));}
+function delCat(v){fbSet(ROOT+'/categories',cats().filter(x=>x!==v)).then(()=>logOp('Rimozione categoria',v));}
+
+/* ============================================================
+   BUDGET
+   ============================================================ */
+function renderBudget(c){
+  const cc=cfg();
+  let h=`<div class="page-head"><h2>Budget & Impostazioni</h2></div><div class="card" style="max-width:520px;">
+    <div class="form-group"><label>Budget iniziale mensile — Contanti €</label><input type="number" inputmode="decimal" id="b-cash" value="${cc.budgetCash||0}"></div>
+    <div class="form-group"><label>Budget iniziale mensile — Carta €</label><input type="number" inputmode="decimal" id="b-card" value="${cc.budgetCard||0}"></div>
+    <div class="form-group"><label>Soglia alert saldo basso €</label><input type="number" inputmode="decimal" id="b-thr" value="${cc.lowBalanceThreshold||0}"></div>
+    <div class="form-group"><label>Email per notifiche alert</label><input id="b-email" value="${esc(cc.alertEmail)}"></div>
+    <div class="form-group"><div class="form-row">
+      <div><label>Mese di riferimento</label><select id="b-month">${MESI.map((m,i)=>`<option value="${i}" ${cc.periodMonth===i?'selected':''}>${m}</option>`).join('')}</select></div>
+      <div><label>Anno</label><input type="number" id="b-year" value="${cc.periodYear}"></div>
+    </div></div>
+    <button class="btn green" style="width:100%;justify-content:center" id="b-save" onclick="saveBudget()">Salva impostazioni</button></div>`;
+  c.innerHTML=h;
+}
+function saveBudget(){
+  fbUpdate(ROOT+'/config',{budgetCash:parseFloat($('b-cash').value)||0,budgetCard:parseFloat($('b-card').value)||0,
+    lowBalanceThreshold:parseFloat($('b-thr').value)||0,alertEmail:$('b-email').value.trim(),
+    periodMonth:+$('b-month').value,periodYear:+$('b-year').value}).then(()=>{logOp('Modifica budget/impostazioni','');const b=$('b-save');if(b){b.textContent='✓ Salvato';setTimeout(()=>{if($('b-save'))$('b-save').textContent='Salva impostazioni';},1800);}});
+}
+
+/* ============================================================
+   REPORT PDF (jsPDF)
+   ============================================================ */
+let rep={scope:'generale',svc:'',month:'',year:''};
+function renderReport(c){
+  if(rep.month===''){rep.month=cfg().periodMonth;rep.year=cfg().periodYear;rep.svc=isAdmin?(servicesList()[0]?.id||''):myServiceId;rep.scope=isAdmin?'generale':'servizio';}
+  if(!isAdmin)rep.svc=myServiceId;
+  let h=`<div class="page-head"><h2>Report PDF</h2></div><div class="card" style="max-width:520px;">`;
+  if(isAdmin)h+=`<div class="form-group"><label>Tipo di report</label><select id="r-scope" onchange="rep.scope=this.value;render()"><option value="generale" ${rep.scope==='generale'?'selected':''}>Generale (tutti i servizi)</option><option value="servizio" ${rep.scope==='servizio'?'selected':''}>Singolo servizio</option></select></div>`;
+  if(rep.scope==='servizio'&&isAdmin)h+=`<div class="form-group"><label>Servizio</label><select id="r-svc" onchange="rep.svc=this.value">${servicesList().map(s=>`<option value="${s.id}" ${rep.svc===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select></div>`;
+  h+=`<div class="form-group"><div class="form-row">
+    <div><label>Mese</label><select id="r-month" onchange="rep.month=this.value">${MESI.map((m,i)=>`<option value="${i}" ${+rep.month===i?'selected':''}>${m}</option>`).join('')}</select></div>
+    <div><label>Anno</label><input type="number" id="r-year" value="${rep.year}" onchange="rep.year=this.value"></div>
+  </div></div>
+  <button class="btn green" style="width:100%;justify-content:center" id="r-go" onclick="genPDF()"><i class="ti ti-file-type-pdf"></i> Genera PDF</button>
+  <div class="info-box" style="margin-top:12px;">Il PDF verrà scaricato. Per il report di singolo servizio vengono allegati anche gli scontrini caricati.</div></div>`;
+  c.innerHTML=h;
+}
+function genPDF(){
+  const m=+($('r-month').value),y=+($('r-year').value);
+  const scope=isAdmin?($('r-scope')?$('r-scope').value:'generale'):'servizio';
+  const svc=scope==='servizio'?(($('r-svc')&&$('r-svc').value)||myServiceId):null;
+  const exp=expList().filter(e=>inPeriod(e.date,m,y)&&(scope==='generale'||e.serviceId===svc)).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const go=$('r-go');go.disabled=true;go.innerHTML='<i class="ti ti-loader-2"></i> Preparazione…';
+  // carica scontrini se servizio
+  const need=scope==='servizio'?exp.filter(e=>e.hasReceipt):[];
+  Promise.all(need.map(e=>db.ref(RECEIPTS+'/'+e.id).once('value').then(s=>({e,url:s.val()})))).then(receipts=>{
+    buildPDF(scope,svc,m,y,exp,receipts);
+    go.disabled=false;go.innerHTML='<i class="ti ti-file-type-pdf"></i> Genera PDF';
+  });
+}
+function buildPDF(scope,svc,m,y,exp,receipts){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  const pm=n=>Number(n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' EUR';
+  const byCat={};const bySvc={};let tot=0;
+  exp.forEach(e=>{byCat[e.category]=(byCat[e.category]||0)+(+e.amount||0);bySvc[e.serviceId]=(bySvc[e.serviceId]||0)+(+e.amount||0);tot+=(+e.amount||0);});
+  doc.setFontSize(14);doc.setFont('helvetica','bold');
+  doc.text(scope==='generale'?'Report generale spese':'Report spese — '+svcName(svc),14,18);
+  doc.setFont('helvetica','normal');doc.setFontSize(10);
+  doc.text('Servizi Educativi · ASP Parma',14,24);
+  doc.text('Periodo: '+MESI[m]+' '+y,14,29);
+  const head=scope==='generale'?[['Data','Servizio','Categoria','Metodo','Descrizione','Inserita da','€']]:[['Data','Categoria','Metodo','Descrizione','Inserita da','€']];
+  const body=exp.map(e=>{const row=[fmtData(e.date)];if(scope==='generale')row.push(svcName(e.serviceId));
+    row.push(e.category,e.method,e.description||'',e.byName||'',Number(e.amount).toFixed(2));return row;});
+  doc.autoTable({head,body,startY:34,styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[29,158,117],textColor:255},alternateRowStyles:{fillColor:[245,245,240]}});
+  let yPos=doc.lastAutoTable.finalY+8;
+  doc.autoTable({head:[['Totale per categoria','€']],body:Object.entries(byCat).map(([k,v])=>[k,v.toFixed(2)]),startY:yPos,styles:{fontSize:9,cellPadding:2},headStyles:{fillColor:[120,120,120],textColor:255},margin:{right:110}});
+  if(scope==='generale'){
+    doc.autoTable({head:[['Totale per servizio','€']],body:Object.entries(bySvc).map(([k,v])=>[svcName(k),v.toFixed(2)]),startY:yPos,styles:{fontSize:9,cellPadding:2},headStyles:{fillColor:[120,120,120],textColor:255},margin:{left:110}});
+  }
+  yPos=doc.lastAutoTable.finalY+10;
+  if(scope==='servizio'){
+    const t=totals();const recd=fundList().filter(f=>f.serviceId===svc&&inPeriod(f.date,m,y)).reduce((s,f)=>s+(+f.amount||0),0);
+    const cashSpent=exp.filter(e=>e.method==='contanti').reduce((s,e)=>s+(+e.amount||0),0);
+    doc.setFontSize(10);doc.text('Contanti ricevuti: '+pm(recd)+'    Speso contanti: '+pm(cashSpent)+'    Saldo finale: '+pm(recd-cashSpent),14,yPos);yPos+=8;
+  }
+  doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text('TOTALE GENERALE: '+pm(tot),14,yPos);
+  // scontrini
+  receipts.filter(r=>r.url).forEach(r=>{
+    doc.addPage();doc.setFontSize(11);doc.setFont('helvetica','bold');
+    doc.text('Scontrino — '+fmtData(r.e.date)+' · '+pm(r.e.amount)+' · '+r.e.category,14,18);
+    try{
+      const p=doc.getImageProperties(r.url);
+      let w=170,h=p.height*w/p.width;
+      if(h>250){h=250;w=p.width*h/p.height;}
+      doc.addImage(r.url,'JPEG',14,26,w,h);
+    }catch(err){doc.setFont('helvetica','normal');doc.text('(immagine non disponibile)',14,30);}
+  });
+  doc.save('report_'+(scope==='generale'?'generale':svcName(svc).replace(/[^\w]+/g,'-'))+'_'+MESI[m]+'_'+y+'.pdf');
+  logOp('Generazione report PDF',(scope==='generale'?'generale':svcName(svc))+' · '+MESI[m]+' '+y);
+}
+
+/* ============================================================
+   LOG
+   ============================================================ */
+function renderLog(c){
+  const t=totals();
+  let h=`<div class="page-head"><h2>Log operazioni</h2><div class="spacer"></div><button class="btn small" onclick="mailAlerts()"><i class="ti ti-mail"></i> Invia alert via email</button></div>`;
+  h+=`<div class="alert" style="background:var(--green-l);border-color:#bfe0d6;border-left-color:var(--green);"><i class="ti ti-shield-check" style="color:var(--green-d)"></i><div>Registro in sola lettura delle operazioni. Le voci non sono modificabili dall'interfaccia.</div></div>`;
+  const log=entries(D.log||{}).map(([id,l])=>l).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+  h+=`<div class="table-wrap"><table><thead><tr><th>Data e ora</th><th>Operatore</th><th>Operazione</th><th>Dettaglio</th></tr></thead><tbody>`;
+  if(!log.length)h+=`<tr><td colspan="4"><div class="empty-state"><i class="ti ti-clipboard"></i>Nessuna operazione registrata.</div></td></tr>`;
+  log.forEach(l=>{h+=`<tr><td class="nowrap tiny">${fmtDataOra(l.ts)}</td><td>${esc(l.byName)}</td><td><span class="pill cat">${esc(l.action)}</span></td><td class="muted">${esc(l.detail)}</td></tr>`;});
+  h+=`</tbody></table></div>`;c.innerHTML=h;
+}
+function mailAlerts(){
+  const t=totals();const body=t.alerts.length?('Alert saldo basso (soglia '+EUR(cfg().lowBalanceThreshold)+'):\n'+t.alerts.map(s=>'- '+s.name+': '+EUR(s.balance)).join('\n')):'Nessun alert attivo.';
+  window.location.href='mailto:'+(cfg().alertEmail||'')+'?subject='+encodeURIComponent('Alert saldi servizi educativi')+'&body='+encodeURIComponent(body);
+}
+
+/* ============================================================
+   MODALE GENERICA
+   ============================================================ */
+function openModal(title,icon,bodyHtml,footerHtml){
+  $('modal-root').innerHTML=`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <div class="mh"><i class="ti ${icon}" style="color:var(--green);font-size:20px;"></i><h3>${title}</h3><button class="x" onclick="closeModal()"><i class="ti ti-x"></i></button></div>
+    <div class="mb">${bodyHtml}</div>${footerHtml!==undefined?`<div class="mf">${footerHtml}</div>`:''}</div></div>`;
+}
+function closeModal(){$('modal-root').innerHTML='';pendingReceipt=null;}
+</script>
+</body>
+</html>

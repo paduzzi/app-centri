@@ -234,6 +234,9 @@ async function doLogin(){
     const uid=cred.user.uid;
     const userData=dbData.users&&dbData.users[uid];
     currentUser=uname;isAdmin=userData&&userData.isAdmin===true;
+    currentUser=uname;isAdmin=userData&&userData.isAdmin===true;
+    const apps=(userData&&userData.apps)||{};
+    if(!isAdmin && apps.centri===false){ window.location.href='cassa/'; return; }
     document.getElementById('login-screen').style.display='none';
     document.getElementById('main-app').style.display='block';
     document.getElementById('user-badge').textContent=uname+(isAdmin?' ★':'');
@@ -276,6 +279,9 @@ function switchSection(s){
   document.querySelectorAll('.section-tab').forEach(t=>t.classList.toggle('active',t.getAttribute('onclick')&&t.getAttribute('onclick').includes(`'${s}'`)));
   renderSection();
 }
+function switchSection(s){
+  if(s==='cassa'){ window.location.href='cassa/'; return; }
+  currentSection=s;currentWeek=0;
 function renderSection(){
   if(currentArea==='admin'){renderAdmin();return;}
   const c=document.getElementById('section-content');if(!c)return;
