@@ -22,7 +22,11 @@
 <body>
   <div id="root"></div>
 
-  <script type="text/babel" data-presets="react">
+  <script>
+    // Forza il runtime "classico" di React (evita l'errore "import statement outside a module")
+    Babel.registerPreset("classic", { presets: [[Babel.availablePresets.react, { runtime: "classic" }]] });
+  </script>
+  <script type="text/babel" data-presets="classic">
     const { useState, useEffect } = React;
 
     // ══════════════════════════════════════════════════════════════
