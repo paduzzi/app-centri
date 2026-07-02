@@ -125,7 +125,8 @@
       if(!user) return <Login />;
       if(data===null) return <Splash text="Carico i dati…" />;
 
-      const role = (user.email===ADMIN_EMAIL) ? "admin" : "educator";
+      const isDbAdmin = data.admins && data.admins[user.uid];
+      const role = (isDbAdmin || user.email===ADMIN_EMAIL) ? "admin" : "educator";
       return <Main user={user} role={role} data={data} />;
     }
 
@@ -176,7 +177,7 @@
       const [tab,setTab]=useState("presenze");
       const t=CENTERS.find(c=>c.id===center);
 
-      const rosterArr=(cid)=>Object.entries(data.roster?.[cid]||{}).map(([id,v])=>({id,name:v.name}));
+      const weekRosterArr=(cid,wk)=>Object.entries(data.weekRoster?.[cid]?.[wk]||{}).map(([id,v])=>({id,name:v.name}));
       const marksToday=(cid)=>data.attendance?.[cid]?.[TODAY]||{};
       const expArr=(cid)=>Object.entries(data.expenses?.[cid]||{}).map(([id,v])=>({id,...v}));
       const fundOf=(cid)=>data.funds?.[cid]||0;
@@ -212,7 +213,7 @@
                 <div className="px-5 pt-3 space-y-4">
                   {CENTERS.map(c=>{
                     const mk=marksToday(c.id);
-                    const presenti=rosterArr(c.id).filter(p=>mk[p.id]).length;
+                    const presenti=weekRosterArr(c.id,mondayOf(TODAY)).filter(p=>mk[p.id]).length;
                     const saldo=fundOf(c.id)-expArr(c.id).reduce((s,e)=>s+(e.amount||0),0);
                     return (
                       <button key={c.id} onClick={()=>{setCenter(c.id);setTab("presenze");setScreen("center");}}
@@ -249,8 +250,8 @@
                 </div>
 
                 <div className="px-5 pt-5 pb-28">
-                  {tab==="presenze" && <Presenze center={center} role={role} roster={rosterArr(center)} data={data} t={t} />}
-                  {tab==="ore" && <Ore center={center} user={user} t={t} />}
+                  {tab==="presenze" && <Presenze center={center} role={role} data={data} t={t} />}
+                  {tab==="ore" && <Ore center={center} user={user} data={data} t={t} />}
                   {tab==="spese" && <Spese center={center} role={role} user={user} expenses={expArr(center)} fund={fundOf(center)} t={t} />}
                 </div>
 
@@ -274,57 +275,81 @@
       );
     }
 
-    // ── Presenze ──
-    function Presenze({center,role,roster,data,t}){
+    // ── Presenze (lista ragazzi settimanale, gestita dall'Admin) ──
+    function Presenze({center,role,data,t}){
       const [date,setDate]=useState(TODAY);
       const [newName,setNewName]=useState("");
+      const [msg,setMsg]=useState("");
+      const week=mondayOf(date);
+      const rosterObj=data.weekRoster?.[center]?.[week]||{};
+      const roster=Object.entries(rosterObj).map(([id,v])=>({id,name:v.name}));
       const marks=data.attendance?.[center]?.[date]||{};
       const getMark=(id)=>!!marks[id];
       const presenti=roster.filter(p=>getMark(p.id)).length;
 
       const toggle=(id)=>ref(`attendance/${center}/${date}/${id}`).set(!getMark(id));
-      const add=()=>{ if(!newName.trim())return; ref(`roster/${center}`).push({name:newName.trim()}); setNewName(""); };
+      const add=()=>{
+        if(!newName.trim())return;
+        if(roster.length>=13){setMsg("Massimo 13 ragazzi per settimana.");return;}
+        ref(`weekRoster/${center}/${week}`).push({name:newName.trim()});
+        setNewName("");setMsg("");
+      };
+      const remove=(id)=>ref(`weekRoster/${center}/${week}/${id}`).remove();
+      const copyPrev=()=>{
+        for(let i=1;i<=12;i++){
+          const prev=addDays(week,-7*i);
+          const list=data.weekRoster?.[center]?.[prev];
+          if(list){
+            Object.values(list).map(v=>v.name).slice(0,13).forEach(n=>ref(`weekRoster/${center}/${week}`).push({name:n}));
+            setMsg("Lista copiata dalla settimana del "+fmtItShort(prev)+".");
+            return;
+          }
+        }
+        setMsg("Nessuna lista trovata nelle settimane precedenti.");
+      };
+
       const scarica=()=>{
-        const rows=[["Centro","Data","Utente","Presenza"]];
+        const rows=[["Centro","Data","Ragazzo","Presenza"]];
         roster.forEach(p=>rows.push([center,fmtIt(date),p.name,getMark(p.id)?"Presente":"Assente"]));
         const csv="\uFEFF"+rows.map(r=>r.map(c=>`"${c}"`).join(";")).join("\n");
         const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));
         const a=document.createElement("a");a.href=url;a.download=`presenze_${center}_${date}.csv`;a.click();URL.revokeObjectURL(url);
       };
       const scaricaSettimana=()=>{
-        const monday=mondayOf(TODAY);
-        const giorni=[0,1,2,3,4].map(i=>addDays(monday,i));
-        const rows=[["Centro","Data","Giorno","Utente","Presenza"]];
+        const giorni=[0,1,2,3,4].map(i=>addDays(week,i));
+        const rows=[["Centro","Data","Giorno","Ragazzo","Presenza"]];
         giorni.forEach((dt,idx)=>{
           const mk=data.attendance?.[center]?.[dt]||{};
           roster.forEach(p=>rows.push([center,fmtIt(dt),GIORNI[idx],p.name,mk[p.id]?"Presente":"Assente"]));
         });
         const csv="\uFEFF"+rows.map(r=>r.map(c=>`"${c}"`).join(";")).join("\n");
         const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));
-        const a=document.createElement("a");a.href=url;a.download=`presenze_settimana_${center}_${monday}.csv`;a.click();URL.revokeObjectURL(url);
+        const a=document.createElement("a");a.href=url;a.download=`presenze_settimana_${center}_${week}.csv`;a.click();URL.revokeObjectURL(url);
       };
 
       return (
         <div>
-          <div className="flex items-center gap-2 bg-white rounded-2xl p-3 shadow-sm mb-4">
+          <div className="flex items-center gap-2 bg-white rounded-2xl p-3 shadow-sm mb-2">
             <Icon name="calendar" className="h-5 w-5" style={{color:t.accentText}} />
             <div className="flex-1">
               <p className="text-xs text-stone-400">Giornata</p>
-              <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="text-sm font-semibold text-stone-800 bg-transparent focus:outline-none" />
+              <input type="date" value={date} onChange={e=>{setDate(e.target.value);setMsg("");}} className="text-sm font-semibold text-stone-800 bg-transparent focus:outline-none" />
             </div>
             <span className="text-sm font-semibold" style={{color:t.accentText}}>{presenti}/{roster.length}</span>
           </div>
+          <p className="text-xs text-stone-400 mb-4 px-1">Settimana {fmtItShort(week)}–{fmtItShort(addDays(week,4))} · lista ragazzi valida per tutti i giorni</p>
 
           <h2 className="text-lg font-bold text-stone-800 mb-3">Presenze del {fmtIt(date)}</h2>
 
           <div className="space-y-2">
-            {roster.length===0 && <p className="text-sm text-stone-400 text-center py-6">Nessun utente. {role==="admin"?"Aggiungine uno qui sotto.":"L'amministratore deve inserire gli utenti."}</p>}
+            {roster.length===0 && <p className="text-sm text-stone-400 text-center py-6">Nessun ragazzo per questa settimana. {role==="admin"?"Copiala dalla settimana scorsa o aggiungili qui sotto.":"L'amministratore deve ancora inserire la lista."}</p>}
             {roster.map(p=>{
               const present=getMark(p.id);
               return (
                 <div key={p.id} className="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm">
                   <div className="h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm" style={{backgroundColor:t.soft,color:t.accentText}}>{initials(p.name)}</div>
                   <div className="flex-1 min-w-0"><p className="font-medium text-stone-800 truncate">{role==="admin"?p.name:initials(p.name)}</p></div>
+                  {role==="admin" && <button onClick={()=>remove(p.id)} className="text-stone-300 active:text-rose-500"><Icon name="trash" className="h-4 w-4" /></button>}
                   <button onClick={()=>toggle(p.id)} className={"h-9 w-9 rounded-xl flex items-center justify-center transition-colors "+(present?"bg-emerald-500 text-white":"bg-stone-100 text-stone-400")}>
                     <Icon name={present?"check":"x"} className="h-5 w-5" />
                   </button>
@@ -336,11 +361,17 @@
           {role==="admin" && (
             <>
               <div className="mt-5 flex gap-2">
-                <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Nome e cognome nuovo utente"
+                <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Nome e cognome ragazzo" onKeyDown={e=>e.key==="Enter"&&add()}
                   className="flex-1 rounded-2xl border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300" />
                 <button onClick={add} className="h-12 w-12 rounded-2xl bg-stone-800 text-white flex items-center justify-center active:scale-95"><Icon name="plus" className="h-5 w-5" /></button>
               </div>
-              <button onClick={scarica} className="mt-3 w-full rounded-2xl py-3 font-semibold text-stone-700 bg-stone-100 flex items-center justify-center gap-2 active:scale-[0.99]">
+              {roster.length===0 && (
+                <button onClick={copyPrev} className="mt-2 w-full rounded-2xl py-3 font-semibold text-stone-700 bg-stone-100 flex items-center justify-center gap-2 active:scale-[0.99]">
+                  <Icon name="calendar" className="h-5 w-5" /> Copia lista dalla settimana scorsa
+                </button>
+              )}
+              {msg && <p className="mt-2 text-xs text-stone-500 text-center">{msg}</p>}
+              <button onClick={scarica} className="mt-4 w-full rounded-2xl py-3 font-semibold text-stone-700 bg-stone-100 flex items-center justify-center gap-2 active:scale-[0.99]">
                 <Icon name="download" className="h-5 w-5" /> Scarica presenze del {fmtIt(date)}
               </button>
               <button onClick={scaricaSettimana} className="mt-2 w-full rounded-2xl py-3 font-semibold flex items-center justify-center gap-2 active:scale-[0.99]" style={{background:t.gradient,color:t.onGradient}}>
@@ -352,23 +383,66 @@
       );
     }
 
-    // ── Ore ──
-    function Ore({center,user,t}){
-      const [nome,setNome]=useState("");
+    // ── Ore (lista educatori per centro, gestita da chiunque) ──
+    function Ore({center,user,data,t}){
+      const educators=Object.entries(data.educators?.[center]||{}).map(([id,v])=>({id,name:v.name}));
+      const [eduId,setEduId]=useState("");
+      const [newEdu,setNewEdu]=useState("");
       const [weekStart,setWeekStart]=useState(mondayOf(TODAY));
       const [grid,setGrid]=useState(GIORNI.reduce((a,g)=>({...a,[g]:{in:"08:00",out:"16:30"}}),{}));
       const [saved,setSaved]=useState(false);
+      const [msg,setMsg]=useState("");
       const setCell=(g,f,v)=>{setGrid(p=>({...p,[g]:{...p[g],[f]:v}}));setSaved(false);};
-      const save=()=>{
-        if(!nome.trim()) return;
-        ref(`hours/${center}/${weekStart}`).push({nome:nome.trim(),giorni:grid,by:user.email,ts:Date.now()});
-        setSaved(true);
+
+      const addEdu=()=>{
+        if(!newEdu.trim())return;
+        if(educators.length>=13){setMsg("Massimo 13 educatori per centro.");return;}
+        ref(`educators/${center}`).push({name:newEdu.trim()});
+        setNewEdu("");setMsg("");
       };
+      const removeEdu=(id)=>{ ref(`educators/${center}/${id}`).remove(); if(eduId===id)setEduId(""); };
+      const save=()=>{
+        const edu=educators.find(e=>e.id===eduId);
+        if(!edu){setMsg("Scegli prima un educatore dalla lista.");return;}
+        ref(`hours/${center}/${weekStart}`).push({nome:edu.name,giorni:grid,by:user.email,ts:Date.now()});
+        setSaved(true);setMsg("");
+      };
+
       return (
         <div>
-          <h2 className="text-lg font-bold text-stone-800 mb-4">Ore settimanali</h2>
-          <input value={nome} onChange={e=>{setNome(e.target.value);setSaved(false);}} placeholder="Nome e cognome educatore"
-            className="w-full rounded-2xl border border-stone-200 px-4 py-3 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-stone-300" />
+          {/* Lista educatori del centro */}
+          <div className="flex items-baseline justify-between mb-2">
+            <h2 className="text-lg font-bold text-stone-800">Educatori del centro</h2>
+            <span className="text-xs text-stone-400">{educators.length}/13</span>
+          </div>
+          <div className="space-y-2 mb-3">
+            {educators.length===0 && <p className="text-sm text-stone-400 text-center py-4">Nessun educatore. Aggiungine uno qui sotto.</p>}
+            {educators.map(e=>(
+              <div key={e.id} className="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm">
+                <div className="h-9 w-9 rounded-full flex items-center justify-center font-bold text-xs" style={{backgroundColor:t.soft,color:t.accentText}}>{initials(e.name)}</div>
+                <p className="flex-1 min-w-0 font-medium text-stone-800 truncate">{e.name}</p>
+                <button onClick={()=>removeEdu(e.id)} className="text-stone-300 active:text-rose-500"><Icon name="trash" className="h-4 w-4" /></button>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 mb-1">
+            <input value={newEdu} onChange={e=>setNewEdu(e.target.value)} placeholder="Nome e cognome educatore" onKeyDown={e=>e.key==="Enter"&&addEdu()}
+              className="flex-1 rounded-2xl border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300" />
+            <button onClick={addEdu} className="h-12 w-12 rounded-2xl bg-stone-800 text-white flex items-center justify-center active:scale-95"><Icon name="plus" className="h-5 w-5" /></button>
+          </div>
+
+          <div className="border-t border-stone-200 my-5"></div>
+
+          {/* Registrazione ore */}
+          <h2 className="text-lg font-bold text-stone-800 mb-3">Registra ore</h2>
+          <label className="block mb-3">
+            <span className="block text-xs text-stone-400 mb-1">Educatore</span>
+            <select value={eduId} onChange={e=>{setEduId(e.target.value);setSaved(false);}} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300">
+              <option value="">— scegli dalla lista —</option>
+              {educators.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}
+            </select>
+          </label>
+
           <div className="flex items-center gap-2 bg-white rounded-2xl p-3 shadow-sm mb-4">
             <Icon name="calendar" className="h-5 w-5" style={{color:t.accentText}} />
             <div className="flex-1">
@@ -392,6 +466,7 @@
               </div>
             ))}
           </div>
+          {msg && <p className="mt-3 text-xs text-stone-500 text-center">{msg}</p>}
           <button onClick={save} style={{background:t.gradient,color:t.onGradient}} className="mt-5 w-full rounded-2xl py-3.5 font-semibold flex items-center justify-center gap-2 active:scale-[0.99]">
             {saved?<><Icon name="check" className="h-5 w-5" /> Ore salvate</>:<><Icon name="save" className="h-5 w-5" /> Salva la settimana</>}
           </button>
