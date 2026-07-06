@@ -12,6 +12,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style> html, body { background: #e7e5e4; } * { -webkit-tap-highlight-color: transparent; } </style>
 </head>
 <body>
@@ -61,7 +62,7 @@
 
     const timeOptions=(s,e)=>{const o=[];for(let h=s;h<=e;h++){for(const m of[0,30]){o.push(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);}}return o;};
     const ORE=timeOptions(0,23); // 00:00 – 23:30, scala 24h
-    const DEF_IN="08:30", DEF_OUT="16:00";
+    const DEF_IN="00:00", DEF_OUT="00:00";
     const DAYS=[{n:"Lunedì",s:"Lun"},{n:"Martedì",s:"Mar"},{n:"Mercoledì",s:"Mer"},{n:"Giovedì",s:"Gio"},{n:"Venerdì",s:"Ven"}];
     const initials=(f)=>f.split(" ").map(p=>p[0]?.toUpperCase()||"").join("").slice(0,3);
     const euro=(n)=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(n||0);
@@ -235,6 +236,23 @@
         kids.forEach(k=>{ const cells=days.map(d=>isPres(k.id,d.iso)?"P":"A"); rows.push([k.name,...cells,cells.filter(c=>c==="P").length]); });
         dl(`ragazzi_${center}_${week}.csv`, csvRows(rows));
       };
+      const esportaOver14=()=>{
+        const aoa=[["Presenze Over 14 — settimana "+fmtIt(week)],[],
+          ["N","NOME RAGAZZI","Centro","Pres/Ass","",...days.map(d=>fmtItShort(d.iso)),"TOT"]];
+        let n=0;
+        CENTERS.forEach(c=>{
+          Object.entries(data.weekRoster?.[c.id]?.[week]||{}).forEach(([kid,v])=>{
+            n++;
+            const pres=days.map(d=>!!data.attendance?.[c.id]?.[week]?.[kid]?.[d.iso]);
+            aoa.push([n,v.name,c.name,"Presenza","",...pres.map(p=>p?"P":""),pres.filter(Boolean).length]);
+            aoa.push(["","","","Assenza","",...pres.map(p=>p?"":"A"),pres.filter(p=>!p).length]);
+          });
+        });
+        const ws=XLSX.utils.aoa_to_sheet(aoa);
+        const wb=XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb,ws,"Presenze");
+        XLSX.writeFile(wb,`presenze_Over14_${week}.xlsx`);
+      };
 
       return (
         <div>
@@ -272,6 +290,7 @@
               {kids.length===0 && <button onClick={copyPrev} className="mt-2 w-full rounded-2xl py-3 font-semibold text-stone-700 bg-stone-100 flex items-center justify-center gap-2 active:scale-[0.99]"><Icon name="calendar" className="h-5 w-5" /> Copia dalla settimana scorsa</button>}
               {msg && <p className="mt-2 text-xs text-stone-500 text-center">{msg}</p>}
               <button onClick={scarica} className="mt-3 w-full rounded-2xl py-3 font-semibold flex items-center justify-center gap-2 active:scale-[0.99]" style={{background:t.gradient,color:t.onGradient}}><Icon name="download" className="h-5 w-5" /> Scarica ragazzi (settimana)</button>
+              <button onClick={esportaOver14} className="mt-2 w-full rounded-2xl py-3 font-semibold text-stone-700 bg-stone-100 flex items-center justify-center gap-2 active:scale-[0.99]"><Icon name="download" className="h-5 w-5" /> Esporta Excel per file Over 14 (tutti i centri)</button>
             </div>
           )}
         </div>
