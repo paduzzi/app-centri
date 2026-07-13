@@ -232,7 +232,9 @@ async function createAdminAccount(){
 }
 
 async function doLogin(){
-  const uname=document.getElementById('login-username').value.trim().toLowerCase();
+  let uname=document.getElementById('login-username').value.trim().toLowerCase();
+  // Accetta sia "admin" che "admin@centri-estivi.app"
+  if(uname.includes('@')) uname=uname.split('@')[0];
   const pwd=document.getElementById('login-password').value;
   const err=document.getElementById('login-error');err.style.display='none';
   if(!uname||!pwd){err.textContent='Inserisci username e password';err.style.display='block';return;}
