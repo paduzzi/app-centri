@@ -331,6 +331,11 @@
       const removeEdu=(id)=>{ ref(`weekEducators/${center}/${week}/${id}`).remove(); if(eduId===id)setEduId(""); };
       const copyPrev=()=>{ for(let i=1;i<=12;i++){const prev=addDays(week,-7*i);const list=data.weekEducators?.[center]?.[prev];if(list){Object.values(list).map(v=>v.name).slice(0,13).forEach(n=>ref(`weekEducators/${center}/${week}`).push({name:n}));setMsg("Copiata dalla settimana del "+fmtItShort(prev)+".");return;}} setMsg("Nessuna lista nelle settimane precedenti."); };
 
+      // Record salvati con la vecchia versione dell'app: {nome, giorni:{Lunedì:{in,out}}, by, ts}
+      const legacy=Object.entries(data.hours?.[center]?.[week]||{})
+        .filter(([,v])=>v&&v.nome&&v.giorni)
+        .map(([id,v])=>({id,nome:v.nome,giorni:v.giorni,by:v.by}));
+
       const scarica=()=>{
         const rows=[["Educatore","Tipo","Giorno / Motivo","Data","Entrata","Uscita","Ore"]];
         edus.forEach(ed=>{
@@ -340,6 +345,11 @@
           ex.forEach(e=>{tot+=(e.ore||0);rows.push([ed.name,"Extra",e.motivo,"","","",String(e.ore).replace(".",",")]);});
           rows.push([ed.name,"TOTALE","","","","",String(Math.round(tot*10)/10).replace(".",",")]);
         });
+        legacy.forEach(l=>{
+          let tot=0;
+          days.forEach(d=>{const h=l.giorni?.[d.n];if(!h)return;const o=calcOre(h.in,h.out);tot+=o;rows.push([l.nome,"Ordinario (archivio)",d.n,fmtIt(d.iso),h.in,h.out,String(o).replace(".",",")]);});
+          rows.push([l.nome,"TOTALE","","","","",String(Math.round(tot*10)/10).replace(".",",")]);
+        });
         dl(`educatori_${center}_${week}.csv`, csvRows(rows));
       };
 
@@ -347,6 +357,28 @@
         <div>
           <WeekPicker week={week} setWeek={setWeek} t={t} />
           <h2 className="text-lg font-bold text-stone-800 mb-3">Ore educatori</h2>
+
+          {legacy.length>0 && (
+            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-bold text-amber-900 mb-1">Ore in archivio ({legacy.length})</p>
+              <p className="text-xs text-amber-700 mb-3">Registrate con la versione precedente dell'app. Sono in sola lettura, ma vengono incluse nel file che scarichi.</p>
+              {legacy.map(l=>{
+                let tot=0;
+                return (
+                  <div key={l.id} className="bg-white rounded-xl p-3 mb-2">
+                    <p className="text-sm font-semibold text-stone-800 mb-1">{l.nome}</p>
+                    {days.map(d=>{
+                      const h=l.giorni?.[d.n];
+                      if(!h) return null;
+                      const o=calcOre(h.in,h.out); tot+=o;
+                      return <div key={d.iso} className="flex items-center gap-2 text-xs text-stone-600 py-0.5"><span className="w-20 text-stone-400">{d.s} {fmtItShort(d.iso)}</span><span className="flex-1 font-medium">{h.in} → {h.out}</span><span className="font-semibold">{o} h</span></div>;
+                    })}
+                    <p className="text-xs font-bold text-stone-800 mt-1 text-right">Totale {Math.round(tot*10)/10} h</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {edus.length===0 ? (
             <p className="text-sm text-stone-400 text-center py-6">{role==="admin"?"Nessun educatore per questa settimana. Copiala dalla scorsa o aggiungili qui sotto.":"L'amministratore non ha ancora inserito la lista educatori di questa settimana."}</p>
